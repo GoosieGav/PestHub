@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Pest Directory - PEST-Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="directory-header">
+        <h1>Pest Information Directory</h1>
+        <p class="subtitle">Comprehensive guide to agricultural pests and their management</p>
+    </div>
+    
+    <div class="pest-grid">
+        {% for pest_id, pest in pests.items() %}
+        <div class="pest-card">
+            <div class="card-content">
+                <div class="pest-thumbnail">
+                    <img src="{{ url_for('static', filename='images/pests/' + pest.image) }}" 
+                         alt="{{ pest.name }}"
+                         class="thumbnail-image">
+                </div>
+                <h2>{{ pest.name }}</h2>
+                <p class="scientific-name">{{ pest.scientific_name }}</p>
+                <p class="preview-text">{{ pest.summary }}</p>
+                <a href="{{ url_for('pest_details', pest_name=pest_id) }}" class="view-button">
+                    View Details →
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_styles %}
+.directory-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 10px;
+    color: white;
+}
+
+.directory-header h1 {
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    font-size: 2.5em;
+}
+
+.directory-header .subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    font-size: 1.1em;
+}
+
+.pest-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+.pest-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.pest-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-content {
+    padding: 1.5rem;
+}
+
+.pest-thumbnail {
+    width: 100%;
+    height: 200px;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.thumbnail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.pest-card:hover .thumbnail-image {
+    transform: scale(1.05);
+}
+
+.scientific-name {
+    color: #666;
+    font-style: italic;
+    margin: 0.5rem 0;
+    font-size: 0.9em;
+}
+
+.preview-text {
+    color: #4a5568;
+    margin: 1rem 0;
+    line-height: 1.5;
+    font-size: 0.95em;
+}
+
+.view-button {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+.view-button:hover {
+    background-color: var(--secondary-color);
+    transform: translateX(5px);
+}
+{% endblock %}

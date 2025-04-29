@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}{{ pest.name }} Information - PEST-Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="navigation-header">
+        <a href="{{ url_for('pest_directory') }}" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Directory
+        </a>
+    </div>
+
+    <div class="pest-info-container">
+        <div class="main-header">
+            <div class="header-content">
+                <div class="pest-image-wrapper">
+                    <img src="{{ url_for('static', filename='images/pests/' + pest.image) }}" 
+                         alt="{{ pest.name }}"
+                         class="pest-main-image">
+                </div>
+                <div class="pest-title">
+                    <h1>{{ pest.name }}</h1>
+                    <p class="scientific-name">{{ pest.scientific_name }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="info-card description full-width">
+                <div class="card-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h2>Description</h2>
+                </div>
+                <div class="card-content">
+                    <p>{{ pest.description }}</p>
+                </div>
+            </div>
+
+            <div class="info-card species full-width">
+                <div class="card-header">
+                    <i class="fas fa-dna"></i>
+                    <h2>Common Species</h2>
+                </div>
+                <div class="card-content">
+                    <div class="species-grid">
+                        {% for species in pest.common_species %}
+                        <div class="species-item">
+                            <div class="species-header">
+                                <h3 class="species-name">{{ species.name }}</h3>
+                            </div>
+                            <div class="species-body">
+                                <p class="species-description">{{ species.description }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card symptoms full-width">
+                <div class="card-header">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h2>Damage Symptoms</h2>
+                </div>
+                <div class="card-content symptoms-content">
+                    <div class="symptoms-list">
+                        <ul>
+                            {% for symptom in pest.symptoms %}
+                            <li>{{ symptom }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="damage-image">
+                        <img src="{{ url_for('static', filename='images/damage/' + pest.name.lower() + '_damage.jpg') }}" 
+                             alt="{{ pest.name }} damage example"
+                             onerror="this.src='{{ url_for('static', filename='images/damage/placeholder.jpg') }}'">
+                        <p class="image-caption">Typical damage caused by {{ pest.name }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card treatment">
+                <div class="card-header">
+                    <i class="fas fa-seedling"></i>
+                    <h2>Organic Treatment</h2>
+                </div>
+                <div class="card-content">
+                    <ul>
+                        {% for treatment in pest.organic_treatment %}
+                        <li>{{ treatment }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="info-card treatment">
+                <div class="card-header">
+                    <i class="fas fa-flask"></i>
+                    <h2>Chemical Treatment</h2>
+                </div>
+                <div class="card-content">
+                    <ul>
+                        {% for treatment in pest.chemical_treatment %}
+                        <li>{{ treatment }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="info-card prevention full-width">
+                <div class="card-header">
+                    <i class="fas fa-shield-alt"></i>
+                    <h2>Prevention Tips</h2>
+                </div>
+                <div class="card-content">
+                    <ul>
+                        {% for tip in pest.prevention %}
+                        <li>{{ tip }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_styles %}
+.pest-info-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.navigation-header {
+    margin-bottom: 2rem;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--primary-color);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateX(-5px);
+}
+
+.main-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.header-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 3rem;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pest-image-wrapper {
+    width: 300px;
+    height: 300px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+
+.pest-main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pest-title h1 {
+    color: var(--primary-color);
+    margin: 0;
+    font-size: 2.5em;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.info-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.3em;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.card-content {
+    flex-grow: 1;
+    padding: 1.8rem;
+    background: linear-gradient(to bottom, #ffffff, #f8fafc);
+    text-align: left;
+}
+
+.card-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.card-content li {
+    display: flex;
+    padding: 0.75rem 0;
+    line-height: 1.5;
+}
+
+.card-content li:before {
+    content: "•";
+    color: var(--secondary-color);
+    margin-right: 1rem;
+    min-width: 1.2rem;
+    font-size: 1.2em;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.symptoms-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.symptoms-list {
+    text-align: left;
+}
+
+.damage-image {
+    background: #f8fafc;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    padding: 1rem;
+}
+
+.damage-image img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.image-caption {
+    margin: 1rem 0 0 0;
+    color: #4a5568;
+    font-style: italic;
+    font-size: 0.9em;
+    text-align: center;
+}
+
+.species-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 0.5rem;
+}
+
+.species-item {
+    background: #f8fafc;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.species-header {
+    background: var(--primary-color);
+    padding: 0.8rem 1.2rem;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+.species-name {
+    color: white;
+    margin: 0;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+.species-body {
+    padding: 1.2rem;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+}
+
+.species-description {
+    color: #4a5568;
+    margin: 0;
+    line-height: 1.6;
+    font-size: 0.95em;
+}
+
+.species-list,
+.species-item:last-child,
+.species-item {
+    border: none;
+    padding: 0;
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card-content {
+        padding: 1.2rem;
+    }
+
+    .species-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .symptoms-content {
+        grid-template-columns: 1fr;
+    }
+
+    .damage-image img {
+        height: 200px;
+    }
+}
+{% endblock %}

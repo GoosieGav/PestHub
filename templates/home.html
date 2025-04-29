@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Pest Detection{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="hero-section">
+        <div class="decorative-bg"></div>
+        <h1>Smart Agricultural Pest Detection</h1>
+        <div class="hero-image">
+            <img src="{{ url_for('static', filename='images/hero-pest-detection.png') }}" 
+                 alt="AI Pest Detection Illustration"
+                 class="hero-img">
+        </div>
+        <p class="intro-text">
+            Welcome to our advanced pest detection system. Using state-of-the-art artificial intelligence, 
+            we help farmers and agricultural professionals identify and manage pest threats efficiently.
+            Simply upload an image of the pest, and our AI will provide instant identification and management recommendations.
+        </p>
+    </div>
+
+    <div class="benefits-section">
+        <div class="card">
+            <h2>Why Early Pest Detection Matters</h2>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <img src="{{ url_for('static', filename='images/yield-protection.png') }}" 
+                         alt="Yield Protection"
+                         class="benefit-image">
+                    <h3>Protect Your Yield</h3>
+                    <p>Identify threats early to prevent crop damage and maintain optimal production levels</p>
+                </div>
+                <div class="benefit-card">
+                    <img src="{{ url_for('static', filename='images/cost-reduction.png') }}" 
+                         alt="Cost Reduction"
+                         class="benefit-image">
+                    <h3>Reduce Costs</h3>
+                    <p>Save money through targeted interventions and reduced pesticide usage</p>
+                </div>
+                <div class="benefit-card">
+                    <img src="{{ url_for('static', filename='images/sustainability.png') }}" 
+                         alt="Environmental Impact"
+                         class="benefit-image">
+                    <h3>Environmental Impact</h3>
+                    <p>Practice sustainable agriculture with precise pest management strategies</p>
+                </div>
+                <div class="benefit-card">
+                    <img src="{{ url_for('static', filename='images/real-time.png') }}" 
+                         alt="Time Efficiency"
+                         class="benefit-image">
+                    <h3>Time Efficiency</h3>
+                    <p>Get instant identification and treatment recommendations</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta-section">
+        <div class="card">
+            <h2>Start Protecting Your Crops Today</h2>
+            <p>Use our AI-powered tool to identify and manage pest threats effectively</p>
+            <a href="/classify" class="cta-button">Get Started Now</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_styles %}
+.hero-section {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    position: relative;
+}
+
+.hero-image {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem 0;
+}
+
+.hero-img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.intro-text {
+    font-size: 1.2em;
+    color: #4a5568;
+    line-height: 1.6;
+    margin: 1.5rem 0;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+.benefit-image {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1rem;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.benefit-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    text-align: center;
+}
+
+.benefit-card:hover {
+    transform: translateY(-5px);
+}
+
+.benefit-card h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+}
+
+.cta-section {
+    margin-top: 3rem;
+    text-align: center;
+}
+
+.cta-section .card {
+    transform: rotate(-1deg);
+}
+
+.cta-section .card > * {
+    transform: rotate(1deg);
+}
+
+.cta-button {
+    display: inline-block;
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1.2em;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+}
+{% endblock %}
