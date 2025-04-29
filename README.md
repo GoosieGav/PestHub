@@ -4,7 +4,7 @@ PEST-Hub is an advanced web application that uses deep learning to identify and 
 
 ## Pages
 <img src="https://raw.githubusercontent.com/GoosieGav/PestHub/main/static/images/README-images/PestHubPhoto.png" alt="PestHub Home Page" width="800"/>
-<img src="static/images/README-images/PestDirectory.png" alt="PestHub Pest Directory" width="800"/>
+<img src="readMeImages/PestDirectory.png" alt="PestHub Pest Directory" width="800"/>
 
 ## Features
 
