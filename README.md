@@ -4,10 +4,17 @@ PEST-Hub is an advanced web application that uses deep learning to identify and 
 
 ![PEST-Hub Interface](static/PestHubPhoto.png)
 
+## Demo Images
+![Pest Detection Demo](static/demo1.png)
+![Treatment Recommendations](static/demo2.png)
+![Mobile Interface](static/mobile-demo.png)
+
 ## Features
 
 - 🔍 Real-time pest detection using CNN
+  ![Detection Example](static/detection-demo.png)
 - 📚 Comprehensive pest information database
+  ![Database Example](static/database-demo.png)
 - 🌿 Organic and chemical treatment recommendations
 - 📱 Responsive web interface
 - 🤖 High-accuracy classification model
