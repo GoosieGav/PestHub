@@ -2,16 +2,19 @@
 
 PEST-Hub is an advanced web application that uses deep learning to identify and provide management recommendations for agricultural pests. Built with PyTorch and Flask, it offers real-time pest detection and comprehensive pest management information.
 
-## Pages
+## Overview
 <img src="readMeImages/PestHubPhoto.png" alt="PestHub Home Page" width="800"/>
-<img src="readMeImages/PestClassification tool.png" alt="PestHub Pest Classification" width="800"/>
 
 ## Features
 
 - 🔍 Real-time pest detection using CNN
+  
   ![Detection Example](readMeImages/DetectionExample.png)
+
 - 📚 Comprehensive pest information database
+  
   ![Database Example](readMeImages/PestDirectory.png)
+
 - 🌿 Organic and chemical treatment recommendations
 - 📱 Responsive web interface
 - 🤖 High-accuracy classification model
