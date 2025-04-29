@@ -10,6 +10,9 @@ PEST-Hub is an advanced web application that uses deep learning to identify and 
 ### Classification Tool
 <img src="readMeImages/ClassificationDemo.png" alt="Classification Interface" width="800"/>
 
+### Classification Demo
+<img src="readMeImages/DetectionExample.png" alt="Pest Classification Example" width="800"/>
+
 ### Pest Directory
 <img src="readMeImages/PestDirectory.png" alt="Pest Directory" width="800"/>
 
