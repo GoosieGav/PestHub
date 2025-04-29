@@ -115,7 +115,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## Authors
 
-- GoosieGav (@GoosieGav)
+- GoosieGav (@GoosieGav), ZAJMS1 (@ZAJMS1)
 
 ## Acknowledgments
 
