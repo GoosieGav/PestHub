@@ -3,9 +3,8 @@
 PEST-Hub is an advanced web application that uses deep learning to identify and provide management recommendations for agricultural pests. Built with PyTorch and Flask, it offers real-time pest detection and comprehensive pest management information.
 
 ## Pages
-![PestHub Home Page](static/images/README-images/PestHubPhoto.png)
-![PestHub Pest Directory](static/images/README-images/PestDirectory.png)
-![PestHub About Page](static/mobile-demo.png)
+<img src="https://raw.githubusercontent.com/GoosieGav/PestHub/main/static/images/README-images/PestHubPhoto.png" alt="PestHub Home Page" width="800"/>
+<img src="https://raw.githubusercontent.com/GoosieGav/PestHub/main/static/images/README-images/PestDirectory.png" alt="PestHub Pest Directory" width="800"/>
 
 ## Features
 
@@ -31,7 +30,7 @@ PEST-Hub is an advanced web application that uses deep learning to identify and 
 
 1. Clone the repository (without downloading LFS files yet)
 ```bash
-git clone --filter=blob:none https://github.com/YOUR_USERNAME/PEST-Hub.git
+git clone --filter=blob:none https://github.com/GoosieGav/PEST-Hub.git
 cd PEST-Hub
 ```
 
@@ -62,7 +61,7 @@ To train the pest detection model:
 1. Download the training dataset (if not already included):
 ```bash
 # Option 1: Download from our releases page
-wget https://github.com/YOUR_USERNAME/PEST-Hub/releases/download/v1.0/training_data.zip
+wget https://github.com/GoosieGav/PEST-Hub/releases/download/v1.0/training_data.zip
 unzip training_data.zip -d data/
 
 # Option 2: Use your own dataset
@@ -85,7 +84,7 @@ git lfs install
 
 2. Configure your remote repository:
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/PEST-Hub.git
+git remote add origin https://github.com/GoosieGav/PEST-Hub.git
 ```
 
 3. Verify Git LFS is tracking the correct files:
@@ -126,7 +125,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## Authors
 
-- YOUR_NAME (@YOUR_USERNAME)
+- GoosieGav (@GoosieGav)
 
 ## Acknowledgments
 
