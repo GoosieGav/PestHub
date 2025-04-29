@@ -117,8 +117,11 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 - Gavin Luo (@GoosieGav), Zain Saquer (@ZAJMS1)
 
+
 ## Acknowledgments
 
 - Advanced AI technology for pest identification
 - PyTorch team for the deep learning framework
 - Flask team for the web framework
+- Note: This project won first place at the Technology Student Assosication competition, in the "Software Development" category.
+
