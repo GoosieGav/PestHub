@@ -5,123 +5,84 @@ PEST-Hub is an advanced web application that uses deep learning to identify and 
 ## Overview
 <img src="readMeImages/PestHubPhoto.png" alt="PestHub Home Page" width="800"/>
 
-## Features
+## Application Architecture
 
-- 🔍 Real-time pest detection using CNN
-  
-  ![Detection Example](readMeImages/DetectionExample.png)
+### Pages and Components
 
-- 📚 Comprehensive pest information database
-  
-  ![Database Example](readMeImages/PestDirectory.png)
+1. **Home Page** (`/templates/home.html`)
+   - Welcome interface with animated background
+   - Benefits grid showcasing key features
+   - Quick navigation to core functionalities
+   - Responsive design with custom CSS animations
 
-- 🌿 Organic and chemical treatment recommendations
-- 📱 Responsive web interface
-- 🤖 High-accuracy classification model
+2. **Pest Classification** (`/templates/index.html`)
+   - Real-time image upload and processing
+   - Dynamic result display with confidence scores
+   - AJAX-powered predictions without page reload
+   - Integration with PyTorch model backend
+   - Treatment recommendations based on detection
 
-## Getting Started
+3. **Pest Directory** (`/templates/pest_directory.html`)
+   - Grid layout of common agricultural pests
+   - Detailed information cards for each pest
+   - Search and filter functionality
+   - Responsive card design with hover effects
+   - Links to treatment recommendations
 
-### Prerequisites
+4. **About Model** (`/templates/about.html`)
+   - Model performance metrics and graphs
+   - System architecture explanation
+   - Feature diagrams and technical specifications
+   - Training methodology information
 
-- Python 3.13+
-- pip package manager
-- Virtual environment (recommended)
-- Git LFS (for handling large files)
-- At least 2GB free disk space
+### Technical Components
 
-### Installation
+1. **Frontend Structure**
+   - Base template (`base.html`) with consistent navigation
+   - Custom CSS variables for theming
+   - Responsive design breakpoints
+   - Font Awesome integration for icons
+   - Dynamic content loading
 
-1. Clone the repository (without downloading LFS files yet)
-```bash
-git clone --filter=blob:none https://github.com/GoosieGav/PEST-Hub.git
-cd PEST-Hub
-```
+2. **Backend Architecture**
+   - Flask routing system
+   - PyTorch model integration
+   - Image processing pipeline
+   - RESTful API endpoints
+   - Error handling middleware
 
-2. Selectively download only the required LFS files
-```bash
-git lfs install
-git lfs pull --include "best_model.pth"
-git lfs pull --include "static/images/*"
-```
+3. **Model Architecture**
+   - Convolutional Neural Network (CNN)
+   - Real-time classification
+   - Transfer learning implementation
+   - High-accuracy predictions
+   - Continuous learning capabilities
 
-3. Set up the virtual environment and install dependencies
-```bash
-chmod +x setup.sh
-./setup.sh
-```
+### Key Features Implementation
 
-4. Run the application
-```bash
-flask run
-```
+- **Image Processing Pipeline**
+  - Client-side image preview
+  - Server-side validation
+  - PyTorch model inference
+  - Result caching system
 
-The application will be available at `http://localhost:5000`
-
-### Model Training
-
-To train the pest detection model:
-
-1. Download the training dataset (if not already included):
-```bash
-# Option 1: Download from our releases page
-wget https://github.com/GoosieGav/PEST-Hub/releases/download/v1.0/training_data.zip
-unzip training_data.zip -d data/
-
-# Option 2: Use your own dataset
-# Place your images in data/[pest_name]/ directories
-```
-
-2. Run the Jupyter notebook:
-```bash
-jupyter notebook cnn_model.ipynb
-```
-
-> Note: The training dataset is split into multiple smaller archives on the releases page to facilitate easier downloading and version control.
-
-## Git Setup and Deployment
-
-1. Initialize Git LFS (if not already done):
-```bash
-git lfs install
-```
-
-2. Configure your remote repository:
-```bash
-git remote add origin https://github.com/GoosieGav/PEST-Hub.git
-```
-
-3. Verify Git LFS is tracking the correct files:
-```bash
-git lfs status
-```
-
-4. Push to remote:
-```bash
-git push -u origin main
-```
-
-Note: Ensure you have [Git LFS](https://git-lfs.com) installed before pushing.
+- **Dynamic UI Components**
+  - Responsive navigation
+  - Loading animations
+  - Error handling
+  - Success notifications
 
 ## Technology Stack
 
 - **Backend**: Python, Flask
 - **ML Framework**: PyTorch
 - **Frontend**: HTML, CSS, JavaScript
-- **Model Architecture**: Convolutional Neural Network (CNN)
-
-## Contributing
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+- **Model Architecture**: CNN
 
 ## Authors
 
 - Gavin Luo (@GoosieGav), Zain Saquer (@ZAJMS1)
 
-
-## Acknowledgments
-
-- Advanced AI technology for pest identification
-- PyTorch team for the deep learning framework
-- Flask team for the web framework
-- Note: This project won first place at the Missouri Technology Student Assosication competition, in the "Software Development" event
+## Achievement
+This project won first place at the Missouri Technology Student Association competition in the "Software Development" event.
 
