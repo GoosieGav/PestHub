@@ -18,11 +18,8 @@ PEST-Hub is an advanced web application that uses deep learning to identify and 
 
 ## Technical Architecture
 
-### Model Performance
-<img src="readMeImages/ModelAccuracy.png" alt="Model Accuracy Graph" width="600"/>
-
-### System Design
-<img src="readMeImages/SystemDiagram.png" alt="System Architecture" width="600"/>
+### About Page
+<img src="readMeImages/AboutPage.png" alt="Model Accuracy Graph" width="600"/>
 
 ## Application Architecture
 
