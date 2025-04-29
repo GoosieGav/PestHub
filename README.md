@@ -102,19 +102,6 @@ git push -u origin main
 
 Note: Ensure you have [Git LFS](https://git-lfs.com) installed before pushing.
 
-## Project Structure
-
-```
-PEST-Hub/
-├── static/              # Static assets
-├── templates/           # HTML templates
-├── docs/               # Documentation
-├── app.py              # Flask application
-├── cnn_model.py        # CNN model definition
-├── requirements.txt    # Python dependencies
-└── setup.sh           # Setup script
-```
-
 ## Technology Stack
 
 - **Backend**: Python, Flask
