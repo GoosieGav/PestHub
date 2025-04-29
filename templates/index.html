@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Classify - Pest Detection{% endblock %}
+
+{% block additional_styles %}
+.upload-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.result {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    display: none;
+    background: #f7fafc;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#preview {
+    max-width: 300px;
+    margin: 20px auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.upload-box {
+    border: 2px dashed #cbd5e0;
+    padding: 40px;
+    border-radius: 10px;
+    margin: 20px 0;
+    background: #f7fafc;
+    transition: all 0.3s ease;
+}
+
+.upload-box:hover {
+    border-color: var(--primary-color);
+    background: #edf2f7;
+}
+
+#file-input {
+    display: none;
+}
+
+.upload-label {
+    background: var(--primary-color);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.upload-label:hover {
+    background: var(--secondary-color);
+}
+
+.loading {
+    display: none;
+    margin: 20px 0;
+}
+
+.pest-alert {
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+}
+
+.pest-detected {
+    background-color: #feb2b2;
+    color: #c53030;
+}
+
+.no-pest {
+    background-color: #9ae6b4;
+    color: #276749;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Pest Classification Tool</h1>
+    <div class="upload-container">
+        <div class="card">
+            <h2>Upload Your Image</h2>
+            <p>Select or drag a clear image of the pest for identification</p>
+            
+            <form id="upload-form">
+                <div class="upload-box">
+                    <label for="file-input" class="upload-label">Choose Image</label>
+                    <input type="file" id="file-input" accept="image/*">
+                    <p style="margin-top: 10px; color: #718096;">Supported formats: JPG, PNG</p>
+                </div>
+                <button type="submit" id="submit-btn">Classify Pest</button>
+            </form>
+        </div>
+
+        <img id="preview">
+        <div class="loading">Analyzing image...</div>
+        <div id="result" class="result">
+            <h3>Analysis Results</h3>
+            <div id="pest-status" class="pest-alert"></div>
+            <p>Classification: <strong><span id="class-name"></span></strong></p>
+            <p>Confidence Level: <strong><span id="confidence"></span></strong></p>
+            <div id="recommendation"></div>
+            <div id="pest-info-link"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('file-input').onchange = function(e) {
+        const preview = document.getElementById('preview');
+        const file = e.target.files[0];
+        if (file) {
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+        }
+    };
+
+    document.getElementById('upload-form').onsubmit = async function(e) {
+        e.preventDefault();
+        const loading = document.querySelector('.loading');
+        const result = document.getElementById('result');
+        const fileInput = document.getElementById('file-input');
+
+        if (!fileInput.files[0]) {
+            alert('Please select an image first');
+            return;
+        }
+
+        loading.style.display = 'block';
+        result.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const resultData = await response.json();
+            
+            if (resultData.error) {
+                alert('Error: ' + resultData.error);
+                return;
+            }
+            
+            const pestStatus = document.getElementById('pest-status');
+            pestStatus.textContent = resultData.message;
+            pestStatus.className = 'pest-alert ' + (resultData.is_pest ? 'pest-detected' : 'no-pest');
+            
+            document.getElementById('class-name').textContent = resultData.class_name || 'Unknown';
+            document.getElementById('confidence').textContent = resultData.confidence || 'N/A';
+            
+            const recommendation = document.getElementById('recommendation');
+            const pestInfoLink = document.getElementById('pest-info-link');
+            
+            if (resultData.is_pest) {
+                recommendation.innerHTML = `<p style="color: #c53030;">Consider consulting with a pest control expert.</p>`;
+                pestInfoLink.innerHTML = `<p><a href="${resultData.info_url}" class="upload-label" style="text-decoration: none; margin-top: 10px; display: inline-block;">View Pest Information</a></p>`;
+            } else {
+                recommendation.innerHTML = `<p style="color: #276749;">No immediate action needed.</p>`;
+                pestInfoLink.innerHTML = '';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error processing the image. Please try again.');
+        } finally {
+            loading.style.display = 'none';
+            result.style.display = 'block';
+        }
+    };
+</script>
+{% endblock %}

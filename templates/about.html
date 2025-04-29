@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}About - PEST-Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>About Our Technology</h1>
+    <div style="text-align: left; max-width: 900px; margin: 0 auto;">
+        <div class="card">
+            <h2>AI-Powered Detection System</h2>
+            <p style="font-size: 1.1em;">
+                Our system utilizes state-of-the-art Convolutional Neural Networks (CNN) to provide accurate pest identification
+                in agricultural environments.
+            </p>
+            <div class="cnn-diagram">
+                <img src="{{ url_for('static', filename='images/cnn-diagram.png') }}" 
+                     alt="CNN Architecture Diagram"
+                     style="max-width: 100%; height: auto; margin: 20px 0;">
+                <p class="diagram-caption">Our CNN Architecture for Pest Detection</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+            <div class="card">
+                <h2>Model Performance</h2>
+                <img src="{{ url_for('static', filename='images/accuracy-graph.png') }}" 
+                     alt="Model Accuracy Graph"
+                     style="max-width: 100%; height: auto; margin: 20px 0;">
+                <ul style="list-style-type: none; padding: 0;">
+                    <li>High Classification Accuracy</li>
+                    <li>Real-Time Processing</li>
+                    <li>Continuous Learning</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>System Features</h2>
+                <img src="{{ url_for('static', filename='images/features-diagram.png') }}" 
+                     alt="System Features Diagram"
+                     style="max-width: 100%; height: auto; margin: 20px 0;">
+                <ul style="list-style-type: none; padding: 0;">
+                    <li>Multi-Class Classification</li>
+                    <li>Real-Time Detection</li>
+                    <li>Treatment Reccomendations</li>
+                    <li>Complex Program</li>
+                    <li>Follows Software Practices</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Supported Pest Categories</h2>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                <div>
+                    <h3 style="color: var(--secondary-color);">Flying Pests</h3>
+                    <ul>
+                        <li>Grasshoppers</li>
+                        <li>Bees</li>
+                        <li>Moths</li>
+                        <li>Wasps</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: var(--secondary-color);">Crawling Pests</h3>
+                    <ul>
+                        <li>Ants</li>
+                        <li>Beetles</li>
+                        <li>Earwigs</li>
+                        <li>Weevils</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: var(--secondary-color);">Other Pests</h3>
+                    <ul>
+                        <li>Caterpillars</li>
+                        <li>Earthworms</li>
+                        <li>Slugs</li>
+                        <li>Snails</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.diagram-caption {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+.cnn-diagram {
+    text-align: center;
+    margin: 20px 0;
+}
+</style>
+{% endblock %}

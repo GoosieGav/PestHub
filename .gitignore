@@ -1,0 +1,29 @@
+# Project specific
+data/
+datasets/
+model_checkpoints/
+venv/
+static/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+.env
+.venv
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+.DS_Store?
