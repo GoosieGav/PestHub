@@ -27,6 +27,8 @@ Follow these steps to set up and run PEST-Hub on your local machine:
 3. **Set up the data directory structure**
    
    The application requires a specific dataset structure for the CNN model:
+
+   The data can be downloaded [here](https://www.kaggle.com/datasets/vencerlanz09/agricultural-pests-image-dataset).
    
    ```
    data/
@@ -46,7 +48,7 @@ Follow these steps to set up and run PEST-Hub on your local machine:
 
    Each directory should contain images of the corresponding pest type (.jpg or .png format).
 
-4. **Download or train the model**
+5. **Download or train the model**
 
    The model file `best_model.pth` is needed but not included in the repository due to its size.
    
@@ -59,10 +61,10 @@ Follow these steps to set up and run PEST-Hub on your local machine:
    - Execute all cells to train the model and generate `best_model.pth`
    
    Option B: **Download a pre-trained model**
-   - Download a pre-trained model from [this link](https://example.com/best_model.pth) (replace with actual link when available)
+   - Download a pre-trained model 
    - Place the downloaded `best_model.pth` in the project root directory
 
-5. **Set up virtual environment and install dependencies**
+6. **Set up virtual environment and install dependencies**
    ```
    # Run the setup script (Unix/Mac)
    chmod +x setup.sh
@@ -74,12 +76,12 @@ Follow these steps to set up and run PEST-Hub on your local machine:
    pip install -r requirements.txt
    ```
 
-6. **Run the application**
+7. **Run the application**
    ```
    python app.py
    ```
 
-7. **Access the application**
+8. **Access the application**
    Open your browser and navigate to `http://127.0.0.1:5000`
 
 ### Troubleshooting
