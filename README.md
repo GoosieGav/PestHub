@@ -2,6 +2,92 @@
 
 PEST-Hub is an advanced web application that uses deep learning to identify and provide management recommendations for agricultural pests. Built with PyTorch and Flask, it offers real-time pest detection and comprehensive pest management information.
 
+## Installation and Setup
+
+Follow these steps to set up and run PEST-Hub on your local machine:
+
+### Prerequisites
+- Python 3.9+ installed
+- Git
+- Pip package manager
+
+### Setup Instructions
+
+1. **Clone the repository**
+   ```
+   git clone https://github.com/yourusername/PestHub.git
+   cd PestHub
+   ```
+
+2. **Create required directories**
+   ```
+   mkdir -p data static/images
+   ```
+
+3. **Set up the data directory structure**
+   
+   The application requires a specific dataset structure for the CNN model:
+   
+   ```
+   data/
+   ├── Ants/          # Images of ants
+   ├── Bees/          # Images of bees
+   ├── Beetles/       # Images of beetles
+   ├── Caterpillars/  # Images of caterpillars
+   ├── Earthworms/    # Images of earthworms
+   ├── Earwigs/       # Images of earwigs
+   ├── Grasshoppers/  # Images of grasshoppers
+   ├── Moths/         # Images of moths
+   ├── Slugs/         # Images of slugs
+   ├── Snails/        # Images of snails
+   ├── Wasps/         # Images of wasps
+   └── Weevils/       # Images of weevils
+   ```
+
+   Each directory should contain images of the corresponding pest type (.jpg or .png format).
+
+4. **Download or train the model**
+
+   The model file `best_model.pth` is needed but not included in the repository due to its size.
+   
+   Option A: **Train your own model**
+   - Populate the data directory with images as described above
+   - Run the training notebook:
+     ```
+     jupyter notebook cnn_model.ipynb
+     ```
+   - Execute all cells to train the model and generate `best_model.pth`
+   
+   Option B: **Download a pre-trained model**
+   - Download a pre-trained model from [this link](https://example.com/best_model.pth) (replace with actual link when available)
+   - Place the downloaded `best_model.pth` in the project root directory
+
+5. **Set up virtual environment and install dependencies**
+   ```
+   # Run the setup script (Unix/Mac)
+   chmod +x setup.sh
+   ./setup.sh
+   
+   # OR set up manually (Windows/Other)
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+6. **Run the application**
+   ```
+   python app.py
+   ```
+
+7. **Access the application**
+   Open your browser and navigate to `http://127.0.0.1:5000`
+
+### Troubleshooting
+
+- If you encounter a "Model not found" error, ensure `best_model.pth` is in the root directory
+- For image processing issues, check that you have Pillow installed correctly
+- If the static files aren't loading, make sure the `static` directory exists and has proper permissions
+
 ## Application Pages
 
 ### Home Page
