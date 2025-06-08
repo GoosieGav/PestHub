@@ -3,7 +3,7 @@
 {% block title %}PEST-Hub - AI Pest Classification{% endblock %}
 
 {% block additional_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='classify.css') }}">
+<link rel="stylesheet" href="{{ url_for('css_assets', filename='classify.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -151,6 +151,7 @@
 </div>
 {% endblock %}
 
+{% block scripts %}
 <script>
 // Global variables
 let selectedFile = null;

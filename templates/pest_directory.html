@@ -3,7 +3,7 @@
 {% block title %}Pest Directory - PEST-Hub{% endblock %}
 
 {% block additional_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='directory.css') }}">
+<link rel="stylesheet" href="{{ url_for('css_assets', filename='directory.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -103,15 +103,15 @@
             {% for pest in pests %}
             <div class="pest-card" 
                  data-name="{{ pest.name|lower }}" 
-                 data-category="{{ pest.category|lower }}" 
-                 data-threat="{{ pest.threat_level|lower }}"
+                 data-category="{{ pest.name|get_category|lower }}" 
+                 data-threat="{{ pest.name|get_threat_level|lower }}"
                  data-scientific="{{ pest.scientific_name|lower }}"
-                 onclick="openPreviewModal('{{ pest.name }}', '{{ pest.scientific_name }}', '{{ pest.description }}', '{{ pest.image }}', {{ pest.symptoms|tojsonfilter }}, '{{ url_for('pest_info', pest_name=pest.name.lower().replace(' ', '_')) }}')">
+                 onclick="openPreviewModal('{{ pest.name }}', '{{ pest.scientific_name }}', '{{ pest.description }}', '{{ pest.image }}', {{ pest.symptoms|tojson }}, '{{ url_for('pest_details', pest_name=pest.name.lower().replace(' ', '_')) }}')">
                 
                 <div class="pest-image-section">
                     <img src="{{ url_for('public_assets', filename='images/pests/' + pest.image) }}" 
                          alt="{{ pest.name }}" class="pest-image">
-                    <div class="pest-badge">{{ pest.threat_level|title }} Risk</div>
+                    <div class="pest-badge">{{ pest.name|get_threat_level|title }} Risk</div>
                 </div>
                 
                 <div class="pest-content">
@@ -120,7 +120,7 @@
                             <h3>{{ pest.name }}</h3>
                             <p class="pest-scientific">{{ pest.scientific_name }}</p>
                         </div>
-                        <div class="pest-type-badge">{{ pest.category|title }}</div>
+                        <div class="pest-type-badge">{{ pest.name|get_category_display }}</div>
                     </div>
                     
                     <p class="pest-description">{{ pest.description[:120] }}...</p>
@@ -130,24 +130,24 @@
                         <div class="info-list">
                             <div class="info-item">
                                 <i class="fas fa-eye"></i>
-                                <span>{{ pest.size }}</span>
+                                <span>Variable sizes</span>
                             </div>
                             <div class="info-item">
                                 <i class="fas fa-leaf"></i>
-                                <span>{{ pest.common_crops|join(', ') }}</span>
+                                <span>Multiple crops</span>
                             </div>
                             <div class="info-item">
                                 <i class="fas fa-calendar"></i>
-                                <span>{{ pest.season }}</span>
+                                <span>Year-round</span>
                             </div>
                         </div>
                     </div>
                     
                     <div class="pest-actions">
-                        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); openPreviewModal('{{ pest.name }}', '{{ pest.scientific_name }}', '{{ pest.description }}', '{{ pest.image }}', {{ pest.symptoms|tojsonfilter }}, '{{ url_for('pest_info', pest_name=pest.name.lower().replace(' ', '_')) }}')">
+                        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); openPreviewModal('{{ pest.name }}', '{{ pest.scientific_name }}', '{{ pest.description }}', '{{ pest.image }}', {{ pest.symptoms|tojson }}, '{{ url_for('pest_details', pest_name=pest.name.lower().replace(' ', '_')) }}')">
                             <i class="fas fa-eye"></i> Quick View
                         </button>
-                        <a href="{{ url_for('pest_info', pest_name=pest.name.lower().replace(' ', '_')) }}" 
+                        <a href="{{ url_for('pest_details', pest_name=pest.name.lower().replace(' ', '_')) }}" 
                            class="btn btn-primary btn-sm" onclick="event.stopPropagation();">
                             <i class="fas fa-info-circle"></i> Learn More
                         </a>

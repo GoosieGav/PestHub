@@ -25,6 +25,10 @@ model.eval()
 def public_assets(filename):
     return send_from_directory('public_assets', filename)
 
+@app.route('/css/<path:filename>')
+def css_assets(filename):
+    return send_from_directory('assets/css', filename)
+
 # Add Jinja2 template filters
 @app.template_filter('get_category')
 def get_category(pest_name):
@@ -755,7 +759,7 @@ def pest_details(pest_name):
 
 @app.route('/pests')
 def pest_directory():
-    return render_template('pest_directory.html', pests=pest_info)
+    return render_template('pest_directory.html', pests=pest_info.values())
 
 @app.route('/predict', methods=['POST'])
 def predict():
