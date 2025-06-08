@@ -1,0 +1,347 @@
+/* ===== Pest Info Page Styles ===== */
+.pest-info-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.navigation-header {
+    margin-bottom: 2rem;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--primary-color);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+    font-weight: 500;
+}
+
+.back-button:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateX(-5px);
+}
+
+.main-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.header-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 3rem;
+    padding: 2rem;
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+
+.pest-image-wrapper {
+    width: 300px;
+    height: 300px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    flex-shrink: 0;
+}
+
+.pest-main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pest-title h1 {
+    color: var(--primary-color);
+    margin: 0;
+    font-size: 2.5em;
+}
+
+.scientific-name {
+    font-style: italic;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.info-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    transition: all var(--transition-normal);
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.info-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.info-card .card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--gray-200);
+}
+
+.info-card .card-header i {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+}
+
+.info-card .card-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+}
+
+.card-content {
+    margin-top: 1rem;
+}
+
+.card-content p {
+    color: var(--text-body);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.card-content ul {
+    list-style: none;
+    padding: 0;
+}
+
+.card-content li {
+    background: var(--bg-card-light);
+    padding: 1rem 1.5rem;
+    margin-bottom: 0.75rem;
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--primary-color);
+    color: var(--text-body);
+    font-weight: 500;
+    transition: all var(--transition-fast);
+}
+
+.card-content li:hover {
+    background: var(--gray-100);
+    transform: translateX(4px);
+}
+
+/* ===== Species Grid ===== */
+.species-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.species-item {
+    background: var(--bg-card-light);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    transition: all var(--transition-normal);
+}
+
+.species-item:hover {
+    background: var(--gray-100);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.species-header {
+    margin-bottom: 1rem;
+}
+
+.species-name {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+}
+
+.species-description {
+    color: var(--text-body);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ===== Symptoms Content ===== */
+.symptoms-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.symptoms-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.symptoms-list li {
+    background: var(--bg-card-light);
+    padding: 1rem 1.5rem;
+    margin-bottom: 0.75rem;
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--error-color);
+    color: var(--text-body);
+    font-weight: 500;
+    position: relative;
+}
+
+.symptoms-list li:before {
+    content: '⚠️';
+    position: absolute;
+    left: -0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-card);
+    padding: 0.25rem;
+    border-radius: 50%;
+}
+
+.damage-image {
+    text-align: center;
+}
+
+.damage-image img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition-normal);
+}
+
+.damage-image img:hover {
+    transform: scale(1.05);
+}
+
+.image-caption {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+/* ===== Treatment Cards ===== */
+.info-card.treatment .card-header i {
+    color: var(--success-color);
+}
+
+.info-card.treatment:first-of-type .card-header i {
+    color: var(--primary-color);
+}
+
+.info-card.treatment li {
+    border-left-color: var(--success-color);
+}
+
+.info-card.treatment:first-of-type li {
+    border-left-color: var(--primary-color);
+}
+
+.info-card.treatment li:before {
+    content: '🌱';
+}
+
+.info-card.treatment:nth-of-type(2) li:before {
+    content: '🧪';
+}
+
+/* ===== Prevention Card ===== */
+.info-card.prevention .card-header i {
+    color: var(--info-color);
+}
+
+.info-card.prevention li {
+    border-left-color: var(--info-color);
+}
+
+.info-card.prevention li:before {
+    content: '🛡️';
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+    .pest-info-container {
+        padding: 1rem;
+    }
+    
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 2rem;
+    }
+    
+    .pest-image-wrapper {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .pest-title h1 {
+        font-size: 2rem;
+    }
+    
+    .symptoms-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .info-card {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .pest-image-wrapper {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .pest-title h1 {
+        font-size: 1.75rem;
+    }
+    
+    .scientific-name {
+        font-size: 1rem;
+    }
+    
+    .info-card {
+        padding: 1rem;
+    }
+    
+    .card-content li {
+        padding: 0.75rem 1rem;
+    }
+    
+    .species-item {
+        padding: 1rem;
+    }
+} 

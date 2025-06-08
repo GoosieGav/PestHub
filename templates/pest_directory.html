@@ -2,6 +2,10 @@
 
 {% block title %}Pest Directory - PEST-Hub{% endblock %}
 
+{% block additional_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='directory.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="directory-container">
     <!-- Header Section -->
