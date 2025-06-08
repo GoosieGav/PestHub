@@ -3,7 +3,12 @@ data/
 datasets/
 model_checkpoints/
 venv/
+static/images/damage/
+static/images/training/
 static/
+
+# But allow public assets
+!public_assets/
 
 # Python
 __pycache__/
