@@ -500,14 +500,17 @@
 }
 
 .feature-card {
-    background: var(--card-bg-light);
-    padding: 2.5rem;
+    background: var(--bg-card);
     border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-md);
+    padding: 2rem;
     border: 1px solid var(--gray-200);
     transition: all var(--transition-normal);
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .feature-card::before {
@@ -521,17 +524,6 @@
     transition: transform var(--transition-normal);
 }
 
-.feature-card:hover::before {
-    transform: scaleX(1.1);
-}
-
-.feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
-}
-
-/* Removed highlight styling for consistency */
-
 .feature-icon {
     width: 60px;
     height: 60px;
@@ -540,49 +532,60 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
     color: white;
     font-size: 1.5rem;
-    transition: all var(--transition-normal);
     box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
-}
-
-.feature-card:hover .feature-icon {
-    transform: scale(1.1);
 }
 
 .feature-card h3 {
     font-size: 1.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     color: var(--text-primary);
     font-weight: 600;
 }
 
 .feature-card p {
     color: var(--text-body);
+    margin-bottom: 1.5rem;
     font-weight: 500;
 }
 
 .feature-benefits {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
 .feature-benefits li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     padding: 0.5rem 0;
-    position: relative;
-    padding-left: 1.5rem;
     color: var(--text-body);
     font-weight: 500;
 }
 
 .feature-benefits li::before {
     content: '✓';
-    position: absolute;
-    left: 0;
-    color: var(--primary-color);
+    color: var(--success-color);
     font-weight: bold;
-    font-size: 1.1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .feature-card {
+        background: var(--bg-primary);
+        border-color: var(--gray-700);
+    }
+    
+    .feature-card h3 {
+        color: var(--text-on-dark);
+    }
+    
+    .feature-card p,
+    .feature-benefits li {
+        color: var(--gray-300);
+    }
 }
 
 /* How It Works Section */
