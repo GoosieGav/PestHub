@@ -538,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-muted);
+    color: var(--text-light);
     font-size: 1.1rem;
 }
 
@@ -565,7 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: var(--text-muted);
+    color: var(--text-light);
     cursor: pointer;
     padding: 0.25rem;
     border-radius: var(--radius-sm);
@@ -592,8 +592,8 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 .filter-group label {
-    font-weight: 500;
-    color: var(--text-secondary);
+    font-weight: 600;
+    color: var(--text-body);
     white-space: nowrap;
 }
 
@@ -625,8 +625,9 @@ document.addEventListener('DOMContentLoaded', () => {
     background: white;
     border: none;
     cursor: pointer;
-    color: var(--text-secondary);
+    color: var(--text-body);
     transition: all var(--transition-fast);
+    font-weight: 500;
 }
 
 .view-btn:hover {
@@ -653,7 +654,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 .results-count {
     font-size: 1.1rem;
-    color: var(--text-secondary);
+    color: var(--text-body);
+    font-weight: 500;
 }
 
 .results-count span {
@@ -772,27 +774,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 .pest-category {
     background: var(--gray-100);
-    color: var(--text-secondary);
+    color: var(--text-readable);
     padding: 0.3rem 0.8rem;
     border-radius: var(--radius-md);
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
     border: 1px solid var(--gray-200);
 }
 
 .pest-scientific {
     font-style: italic;
-    color: var(--text-secondary);
+    color: var(--text-body);
     margin-bottom: 1rem;
     font-size: 0.95rem;
     font-weight: 500;
 }
 
 .pest-summary {
-    color: var(--text-secondary);
+    color: var(--text-body);
     line-height: 1.6;
     margin-bottom: 1.5rem;
     font-size: 0.95rem;
+    font-weight: 400;
 }
 
 .quick-info {
@@ -811,7 +814,7 @@ document.addEventListener('DOMContentLoaded', () => {
     align-items: center;
     gap: 0.75rem;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--text-body);
     font-weight: 500;
 }
 
@@ -835,7 +838,7 @@ document.addEventListener('DOMContentLoaded', () => {
 .no-results {
     text-align: center;
     padding: 4rem 2rem;
-    color: var(--text-secondary);
+    color: var(--text-body);
 }
 
 .no-results-icon {
@@ -900,8 +903,9 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 .preview-info p {
-    color: var(--text-secondary);
+    color: var(--text-body);
     margin-bottom: 1rem;
+    font-weight: 400;
 }
 
 .preview-symptoms {
@@ -922,7 +926,8 @@ document.addEventListener('DOMContentLoaded', () => {
     padding: 0.5rem 0;
     position: relative;
     padding-left: 1.5rem;
-    color: var(--text-secondary);
+    color: var(--text-body);
+    font-weight: 400;
 }
 
 .preview-symptoms li::before {
