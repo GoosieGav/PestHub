@@ -74,7 +74,7 @@
     </div>
     
     <div class="features-grid">
-        <div class="feature-card highlight">
+        <div class="feature-card">
             <div class="feature-icon">
                 <i class="fas fa-microscope"></i>
             </div>
@@ -499,7 +499,7 @@
 }
 
 .feature-card {
-    background: white;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     padding: 2.5rem;
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-md);
@@ -517,12 +517,11 @@
     right: 0;
     height: 4px;
     background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    transform: scaleX(0);
     transition: transform var(--transition-normal);
 }
 
 .feature-card:hover::before {
-    transform: scaleX(1);
+    transform: scaleX(1.1);
 }
 
 .feature-card:hover {
@@ -530,37 +529,21 @@
     box-shadow: var(--shadow-lg);
 }
 
-.feature-card.highlight {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: var(--text-on-primary);
-    border: 2px solid var(--primary-dark);
-}
-
-.feature-card.highlight .feature-icon {
-    background: rgba(255, 255, 255, 0.25);
-    color: var(--text-on-primary);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.feature-card.highlight h3,
-.feature-card.highlight p,
-.feature-card.highlight .feature-benefits li {
-    color: var(--text-on-primary);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
+/* Removed highlight styling for consistency */
 
 .feature-icon {
     width: 60px;
     height: 60px;
-    background: var(--gray-100);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 1.5rem;
-    color: var(--primary-color);
+    color: white;
     font-size: 1.5rem;
     transition: all var(--transition-normal);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
 }
 
 .feature-card:hover .feature-icon {
@@ -597,12 +580,9 @@
     content: '✓';
     position: absolute;
     left: 0;
-    color: var(--success-color);
+    color: var(--primary-color);
     font-weight: bold;
-}
-
-.feature-card.highlight .feature-benefits li::before {
-    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
 }
 
 /* How It Works Section */
