@@ -15,7 +15,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <!-- Centralized CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('css_assets', filename='styles.css') }}">
     
     <!-- Meta tags for SEO -->
     <meta name="description" content="Advanced AI-powered pest detection system for agricultural professionals. Identify pests instantly with our machine learning technology.">
@@ -172,5 +172,7 @@
             }
         });
     </script>
+    
+    {% block scripts %}{% endblock %}
 </body>
 </html>
