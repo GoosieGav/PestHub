@@ -58,7 +58,7 @@
             --text-primary: #111827;        /* 15.8:1 contrast on white - AAA level */
             --text-secondary: #1f2937;      /* 12.6:1 contrast on white - AAA level */
             --text-muted: #374151;          /* 7.7:1 contrast on white - AA level */
-            --text-light: #1f2937;          /* Changed from #4b5563 to darker for better contrast */
+            --text-light: #6b7280;          /* Changed from #4b5563 to darker for better contrast */
             --text-on-primary: #ffffff;
             --text-on-dark: #f9fafb;
             --text-body: #1f2937;           /* Darkened for better readability - 12.6:1 contrast */
@@ -412,8 +412,7 @@
         
         .footer-section p {
             color: var(--text-body);
-            font-weight: 400;
-            line-height: 1.6;
+            font-weight: 500;  /* Increased weight for better readability */
         }
         
         .footer-section ul {
@@ -426,9 +425,9 @@
         
         .footer-section a {
             color: var(--text-body);
+            font-weight: 500;
             text-decoration: none;
             transition: color var(--transition-fast);
-            font-weight: 500;
         }
         
         .footer-section a:hover {
@@ -440,7 +439,68 @@
             padding-top: 2rem;
             border-top: 1px solid var(--gray-200);
             color: var(--text-body);
+            font-weight: 500;
+        }
+        
+        /* Feature Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            border: 1px solid var(--gray-200);
+            transition: all var(--transition-normal);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            background: var(--gray-50);
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-lg);
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
             font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-body);
+        }
+
+        .feature-list li i {
+            color: var(--success-color);
         }
         
         /* Utility Classes */

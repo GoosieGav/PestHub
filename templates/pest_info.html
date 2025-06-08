@@ -237,8 +237,13 @@
 .card-content {
     flex-grow: 1;
     padding: 1.8rem;
-    background: linear-gradient(to bottom, #ffffff, #f8fafc);
+    background: var(--card-bg-light);
     text-align: left;
+}
+
+.card-content p {
+    color: var(--text-body);
+    font-weight: 500;
 }
 
 .card-content ul {
@@ -292,7 +297,7 @@
 
 .image-caption {
     margin: 1rem 0 0 0;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     font-style: italic;
     font-size: 0.9em;
     text-align: center;
@@ -338,7 +343,7 @@
     margin: 0;
     line-height: 1.6;
     font-size: 0.95em;
-    font-weight: 400;
+    font-weight: 500;
 }
 
 .species-list,
