@@ -528,17 +528,21 @@
 
 .feature-card.highlight {
     background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
+    color: var(--text-on-primary);
+    border: 2px solid var(--primary-dark);
 }
 
 .feature-card.highlight .feature-icon {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    background: rgba(255, 255, 255, 0.25);
+    color: var(--text-on-primary);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .feature-card.highlight h3,
-.feature-card.highlight p {
-    color: white;
+.feature-card.highlight p,
+.feature-card.highlight .feature-benefits li {
+    color: var(--text-on-primary);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .feature-icon {
@@ -563,11 +567,13 @@
     font-size: 1.5rem;
     margin-bottom: 1rem;
     color: var(--text-primary);
+    font-weight: 600;
 }
 
 .feature-card p {
     margin-bottom: 1.5rem;
     line-height: 1.6;
+    color: var(--text-secondary);
 }
 
 .feature-benefits {
@@ -821,14 +827,18 @@
 .pest-info h4 {
     margin-bottom: 0.5rem;
     color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1rem;
 }
 
 .pest-type {
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     background: var(--gray-100);
-    padding: 0.25rem 0.5rem;
+    padding: 0.3rem 0.7rem;
     border-radius: var(--radius-sm);
+    font-weight: 500;
+    border: 1px solid var(--gray-200);
 }
 
 .gallery-action {
