@@ -1,137 +1,647 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>{% block title %}PEST-Hub{% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PEST-Hub - Smart Agricultural Pest Detection{% endblock %}</title>
     <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Meta tags for SEO -->
+    <meta name="description" content="Advanced AI-powered pest detection system for agricultural professionals. Identify pests instantly with our machine learning technology.">
+    <meta name="keywords" content="pest detection, agriculture, AI, machine learning, crop management, pest identification">
+    <meta name="author" content="PEST-Hub Team">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="PEST-Hub - Smart Agricultural Pest Detection">
+    <meta property="og:description" content="Advanced AI-powered pest detection system for agricultural professionals">
+    
     <style>
         :root {
-            --primary-color: #0d6323;
-            --secondary-color: #33985f;
-            --background-color: #f7fafc;
-            --text-color: #2d3748;
+            /* Modern Color Palette */
+            --primary-color: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #34d399;
+            --secondary-color: #3b82f6;
+            --secondary-dark: #2563eb;
+            --accent-color: #f59e0b;
+            --accent-light: #fbbf24;
+            
+            /* Neutral Colors */
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            /* Background Colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            
+            /* Text Colors */
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --text-muted: #6b7280;
+            
+            /* Status Colors */
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --info-color: #3b82f6;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-normal: 0.3s ease-in-out;
+            --transition-slow: 0.5s ease-in-out;
+            
+            /* Border Radius */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+        }
+        
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1f2937;
+                --bg-secondary: #111827;
+                --bg-tertiary: #0f172a;
+                --text-primary: #f9fafb;
+                --text-secondary: #d1d5db;
+                --text-muted: #9ca3af;
+            }
+        }
+        
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
         }
         
         body {
-            font-family: 'Inter', sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: var(--text-color);
-            background-color: var(--background-color);
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
         
-        h1, h2, h3, .nav a {
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
             font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+            color: var(--text-primary);
         }
-
-        .nav {
-            background-color: white;
-            padding: 1rem;
-            margin-bottom: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.5rem; }
+        h4 { font-size: 1.25rem; }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Layout Container */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        /* Enhanced Navigation */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gray-200);
             position: sticky;
             top: 0;
             z-index: 1000;
-            backdrop-filter: blur(10px);
+            transition: all var(--transition-normal);
         }
         
-        .nav a {
-            margin-right: 30px;
+        .navbar-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
             text-decoration: none;
             color: var(--primary-color);
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
         }
         
-        .nav a:hover {
-            background-color: var(--primary-color);
-            color: white;
+        .navbar-brand i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .navbar-nav {
+            display: flex;
+            list-style: none;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-fast);
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-color);
+            background: var(--gray-50);
             transform: translateY(-2px);
         }
         
-        .container {
-            text-align: center;
-            padding: 20px;
-        }
-
-        h1 {
+        .nav-link.active {
             color: var(--primary-color);
-            margin-bottom: 1.5rem;
+            background: var(--gray-100);
         }
-
-        h2 {
-            color: var(--secondary-color);
-            margin-top: 2rem;
+        
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 1px;
         }
-
-        .card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin: 20px 0;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 4rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e2e8f0;
-            color: #718096;
-        }
-
-        button {
-            background-color: var(--primary-color);
-            color: white;
+        
+        /* Mobile Navigation */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            font-size: 1.5rem;
+            color: var(--text-primary);
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            padding: 0.5rem;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
         }
-
-        button:hover {
-            background-color: var(--secondary-color);
+        
+        .mobile-menu-toggle:hover {
+            background: var(--gray-100);
         }
-
-        .icon {
-            margin-right: 8px;
+        
+        /* Main Content */
+        .main-content {
+            min-height: calc(100vh - 120px);
+            padding: 2rem 0;
         }
-
-        .decorative-bg {
+        
+        /* Enhanced Cards */
+        .card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            padding: 2rem;
+            margin: 1rem 0;
+            border: 1px solid var(--gray-200);
+            transition: all var(--transition-normal);
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-100);
+        }
+        
+        .card-title {
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        /* Enhanced Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
             position: absolute;
             top: 0;
-            left: 0;
+            left: -100%;
             width: 100%;
             height: 100%;
-            opacity: 0.05;
-            z-index: -1;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.627 0l.83.828-1.415 1.415L51.8 0h2.827zM5.373 0l-.83.828L5.96 2.243 8.2 0H5.374zM48.97 0l3.657 3.657-1.414 1.414L46.143 0h2.828zM11.03 0L7.372 3.657 8.787 5.07 13.857 0H11.03zm32.284 0L49.8 6.485 48.384 7.9l-7.9-7.9h2.83zM16.686 0L10.2 6.485 11.616 7.9l7.9-7.9h-2.83zM37.656 0l8.485 8.485-1.414 1.414L36.242 1.414 37.656 0zm-15.313 0L13.858 8.485l1.414 1.414L23.757 1.414 22.343 0zM32.8 0l6.485 6.485-1.414 1.414L31.385 1.414 32.8 0zm-5.657 0l-6.485 6.485 1.414 1.414 6.485-6.485L27.142 0zM38.2 0l.828.828-1.414 1.414L34.8 0h3.4zM21.8 0l-.828.828 1.414 1.414L25.2 0h-3.4zm14.485 0l3.657 3.657-1.414 1.414L33.97 0h2.315zM23.515 0L19.858 3.657l1.414 1.414L26.03 0h-2.515zm8.485 0l6.485 6.485-1.414 1.414L29.8.828 32 0h-.001z' fill='%234299e1' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left var(--transition-normal);
         }
-
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--secondary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        /* Loading Animation */
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gray-300);
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Enhanced Footer */
+        .footer {
+            background: var(--bg-primary);
+            border-top: 1px solid var(--gray-200);
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+        
+        .footer-section a:hover {
+            color: var(--primary-color);
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--gray-200);
+            color: var(--text-muted);
+        }
+        
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .mb-0 { margin-bottom: 0; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .mb-3 { margin-bottom: 1.5rem; }
+        .mb-4 { margin-bottom: 2rem; }
+        .mt-0 { margin-top: 0; }
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mt-3 { margin-top: 1.5rem; }
+        .mt-4 { margin-top: 2rem; }
+        .p-0 { padding: 0; }
+        .p-1 { padding: 0.5rem; }
+        .p-2 { padding: 1rem; }
+        .p-3 { padding: 1.5rem; }
+        .p-4 { padding: 2rem; }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar-nav {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(255, 255, 255, 0.98);
+                flex-direction: column;
+                padding: 1rem;
+                border-top: 1px solid var(--gray-200);
+                backdrop-filter: blur(20px);
+            }
+            
+            .navbar-nav.active {
+                display: flex;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .app-container {
+                padding: 0 0.5rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.75rem; }
+            h3 { font-size: 1.25rem; }
+        }
+        
+        /* Accessibility Improvements */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* Focus Styles */
+        *:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        
+        /* High Contrast Mode Support */
+        @media (prefers-contrast: high) {
+            :root {
+                --primary-color: #0066cc;
+                --secondary-color: #004499;
+                --text-primary: #000000;
+                --text-secondary: #333333;
+            }
+        }
+        
+        /* Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
         {% block additional_styles %}{% endblock %}
     </style>
 </head>
 <body>
-    <div class="nav">
-        <a href="/"><i class="fas fa-home icon"></i>Home</a>
-        <a href="/classify"><i class="fas fa-search icon"></i>Classify Pest</a>
-        <a href="/pests"><i class="fas fa-bug icon"></i>Pest Directory</a>
-        <a href="/about"><i class="fas fa-info-circle icon"></i>About Model</a>
+    <div class="app-container">
+        <nav class="navbar" role="navigation" aria-label="Main navigation">
+            <div class="navbar-container">
+                <a href="/" class="navbar-brand" aria-label="PEST-Hub Home">
+                    <i class="fas fa-leaf" aria-hidden="true"></i>
+                    <span>PEST-Hub</span>
+                </a>
+                
+                <button class="mobile-menu-toggle" aria-label="Toggle navigation menu" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars" aria-hidden="true"></i>
+                </button>
+                
+                <ul class="navbar-nav" id="navbar-nav">
+                    <li>
+                        <a href="/" class="nav-link" aria-label="Home">
+                            <i class="fas fa-home" aria-hidden="true"></i>
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/classify" class="nav-link" aria-label="Classify Pest">
+                            <i class="fas fa-camera" aria-hidden="true"></i>
+                            <span>Classify</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/pests" class="nav-link" aria-label="Pest Directory">
+                            <i class="fas fa-book" aria-hidden="true"></i>
+                            <span>Directory</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/about" class="nav-link" aria-label="About Our Technology">
+                            <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            <span>About</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        
+        <main class="main-content" role="main">
+            {% block content %}{% endblock %}
+        </main>
+        
+        <footer class="footer" role="contentinfo">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>PEST-Hub</h3>
+                    <p>Advanced AI-powered pest detection for modern agriculture. Protecting crops with cutting-edge technology.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="/classify">Pest Classification</a></li>
+                        <li><a href="/pests">Pest Directory</a></li>
+                        <li><a href="/about">About Technology</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#" onclick="showComingSoon()">Documentation</a></li>
+                        <li><a href="#" onclick="showComingSoon()">API Access</a></li>
+                        <li><a href="#" onclick="showComingSoon()">Support</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <ul>
+                        <li><a href="#" onclick="showComingSoon()">GitHub</a></li>
+                        <li><a href="#" onclick="showComingSoon()">Contact Us</a></li>
+                        <li><a href="#" onclick="showComingSoon()">Newsletter</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 PEST-Hub. Developed by Gavin Luo & Zain Saquer. Winner of Missouri TSA Software Development Competition.</p>
+            </div>
+        </footer>
     </div>
-    {% block content %}{% endblock %}
-    <div class="footer">
-        <p>Agricultural PEST-Hub System</p>
-        <p>Developed with advanced AI technology for accurate pest identification</p>
-        <p>&copy; 2024 PEST-Hub. All rights reserved.</p>
-    </div>
+    
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const navbarNav = document.getElementById('navbar-nav');
+            navbarNav.classList.toggle('active');
+        }
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navbar = document.querySelector('.navbar');
+            const navbarNav = document.getElementById('navbar-nav');
+            
+            if (!navbar.contains(event.target) && navbarNav.classList.contains('active')) {
+                navbarNav.classList.remove('active');
+            }
+        });
+        
+        // Active nav link highlighting
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPath || (currentPath === '/' && href === '/')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+        
+        // Coming soon placeholder
+        function showComingSoon() {
+            alert('This feature is coming soon! Stay tuned for updates.');
+        }
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Keyboard navigation support
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const navbarNav = document.getElementById('navbar-nav');
+                if (navbarNav.classList.contains('active')) {
+                    navbarNav.classList.remove('active');
+                }
+            }
+        });
+    </script>
 </body>
 </html>

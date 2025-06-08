@@ -1,180 +1,1193 @@
 {% extends "base.html" %}
 
-{% block title %}Classify - Pest Detection{% endblock %}
-
-{% block additional_styles %}
-.upload-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.result {
-    margin-top: 20px;
-    padding: 20px;
-    border-radius: 10px;
-    display: none;
-    background: #f7fafc;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-#preview {
-    max-width: 300px;
-    margin: 20px auto;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.upload-box {
-    border: 2px dashed #cbd5e0;
-    padding: 40px;
-    border-radius: 10px;
-    margin: 20px 0;
-    background: #f7fafc;
-    transition: all 0.3s ease;
-}
-
-.upload-box:hover {
-    border-color: var(--primary-color);
-    background: #edf2f7;
-}
-
-#file-input {
-    display: none;
-}
-
-.upload-label {
-    background: var(--primary-color);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.upload-label:hover {
-    background: var(--secondary-color);
-}
-
-.loading {
-    display: none;
-    margin: 20px 0;
-}
-
-.pest-alert {
-    font-size: 1.5em;
-    font-weight: bold;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-}
-
-.pest-detected {
-    background-color: #feb2b2;
-    color: #c53030;
-}
-
-.no-pest {
-    background-color: #9ae6b4;
-    color: #276749;
-}
-{% endblock %}
+{% block title %}Pest Classification - PEST-Hub{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Pest Classification Tool</h1>
-    <div class="upload-container">
-        <div class="card">
-            <h2>Upload Your Image</h2>
-            <p>Select or drag a clear image of the pest for identification</p>
-            
-            <form id="upload-form">
-                <div class="upload-box">
-                    <label for="file-input" class="upload-label">Choose Image</label>
-                    <input type="file" id="file-input" accept="image/*">
-                    <p style="margin-top: 10px; color: #718096;">Supported formats: JPG, PNG</p>
+<div class="classification-container">
+    <!-- Header Section -->
+    <div class="classification-header">
+        <h1>AI Pest Detection</h1>
+        <p class="subtitle">Upload an image to instantly identify agricultural pests and get treatment recommendations</p>
+        
+        <!-- Quick Tips -->
+        <div class="quick-tips">
+            <div class="tip-item">
+                <i class="fas fa-camera"></i>
+                <span>Clear, close-up photos work best</span>
+            </div>
+            <div class="tip-item">
+                <i class="fas fa-sun"></i>
+                <span>Good lighting improves accuracy</span>
+            </div>
+            <div class="tip-item">
+                <i class="fas fa-crop"></i>
+                <span>Focus on the pest, not background</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Classification Area -->
+    <div class="classification-main">
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="upload-area" id="upload-area">
+                <div class="upload-content" id="upload-content">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Drop your image here</h3>
+                    <p>or click to browse</p>
+                    <button type="button" class="btn btn-primary" id="browse-btn">
+                        <i class="fas fa-folder-open"></i>
+                        Choose File
+                    </button>
+                    <div class="upload-formats">
+                        <small>Supports: JPG, PNG, WebP (Max 10MB)</small>
+                    </div>
                 </div>
-                <button type="submit" id="submit-btn">Classify Pest</button>
-            </form>
+                
+                <!-- Image Preview -->
+                <div class="image-preview" id="image-preview" style="display: none;">
+                    <img id="preview-image" alt="Selected image">
+                    <div class="image-info">
+                        <div class="image-name" id="image-name"></div>
+                        <div class="image-size" id="image-size"></div>
+                    </div>
+                    <div class="preview-actions">
+                        <button type="button" class="btn btn-outline btn-sm" id="change-image">
+                            <i class="fas fa-sync"></i>
+                            Change Image
+                        </button>
+                        <button type="button" class="btn btn-primary" id="analyze-btn">
+                            <i class="fas fa-brain"></i>
+                            Analyze Pest
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <input type="file" id="file-input" accept="image/*" style="display: none;">
         </div>
 
-        <img id="preview">
-        <div class="loading">Analyzing image...</div>
-        <div id="result" class="result">
-            <h3>Analysis Results</h3>
-            <div id="pest-status" class="pest-alert"></div>
-            <p>Classification: <strong><span id="class-name"></span></strong></p>
-            <p>Confidence Level: <strong><span id="confidence"></span></strong></p>
-            <div id="recommendation"></div>
-            <div id="pest-info-link"></div>
+        <!-- Results Section -->
+        <div class="results-section" id="results-section" style="display: none;">
+            <!-- Progress Indicator -->
+            <div class="progress-container" id="progress-container">
+                <div class="progress-header">
+                    <h3>Analyzing Image...</h3>
+                    <div class="progress-steps">
+                        <div class="step active">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload</span>
+                        </div>
+                        <div class="step" id="step-processing">
+                            <i class="fas fa-cog fa-spin"></i>
+                            <span>Processing</span>
+                        </div>
+                        <div class="step" id="step-analyzing">
+                            <i class="fas fa-brain"></i>
+                            <span>AI Analysis</span>
+                        </div>
+                        <div class="step" id="step-results">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Results</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-text" id="progress-text">Initializing analysis...</div>
+            </div>
+
+            <!-- Analysis Results -->
+            <div class="analysis-results" id="analysis-results" style="display: none;">
+                <div class="result-header">
+                    <div class="pest-status" id="pest-status"></div>
+                </div>
+                
+                <div class="result-content">
+                    <div class="result-main">
+                        <div class="detection-card">
+                            <div class="card-header">
+                                <h3>Detection Results</h3>
+                                <div class="confidence-badge" id="confidence-badge"></div>
+                            </div>
+                            <div class="card-content">
+                                <div class="detected-pest">
+                                    <div class="pest-image-container">
+                                        <img id="result-image" alt="Analyzed image">
+                                    </div>
+                                    <div class="pest-details">
+                                        <h4 id="pest-name">Unknown</h4>
+                                        <p id="pest-scientific-name"></p>
+                                        <div class="confidence-meter">
+                                            <label>Confidence Level</label>
+                                            <div class="meter-bar">
+                                                <div class="meter-fill" id="confidence-meter"></div>
+                                            </div>
+                                            <span id="confidence-text">0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="recommendation-card" id="recommendation-card">
+                            <div class="card-header">
+                                <h3>Recommendations</h3>
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="card-content">
+                                <div class="recommendation-content" id="recommendation-content"></div>
+                                <div class="action-buttons">
+                                    <a href="#" id="view-details-btn" class="btn btn-primary" style="display: none;">
+                                        <i class="fas fa-info-circle"></i>
+                                        View Detailed Information
+                                    </a>
+                                    <a href="/pests" class="btn btn-outline">
+                                        <i class="fas fa-book"></i>
+                                        Browse All Pests
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Information Sidebar -->
+                    <div class="result-sidebar">
+                        <div class="quick-facts" id="quick-facts" style="display: none;">
+                            <h4>Quick Facts</h4>
+                            <div class="fact-list" id="fact-list"></div>
+                        </div>
+                        
+                        <div class="next-steps">
+                            <h4>What's Next?</h4>
+                            <div class="step-list">
+                                <div class="next-step">
+                                    <i class="fas fa-eye"></i>
+                                    <span>Examine the affected area thoroughly</span>
+                                </div>
+                                <div class="next-step">
+                                    <i class="fas fa-notes-medical"></i>
+                                    <span>Consider the treatment options provided</span>
+                                </div>
+                                <div class="next-step">
+                                    <i class="fas fa-phone"></i>
+                                    <span>Consult with agricultural experts if needed</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="try-again">
+                            <button type="button" class="btn btn-secondary" id="new-analysis-btn">
+                                <i class="fas fa-redo"></i>
+                                Analyze Another Image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal" id="error-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Analysis Error</h3>
+            <button type="button" class="modal-close" id="close-error-modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <p id="error-message">An error occurred during analysis. Please try again.</p>
+            <div class="error-suggestions">
+                <h4>Suggestions:</h4>
+                <ul>
+                    <li>Ensure your image is clear and well-lit</li>
+                    <li>Try a different image format (JPG, PNG)</li>
+                    <li>Check your internet connection</li>
+                    <li>Reduce image size if it's very large</li>
+                </ul>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="retry-analysis">
+                <i class="fas fa-redo"></i>
+                Try Again
+            </button>
         </div>
     </div>
 </div>
 
 <script>
-    document.getElementById('file-input').onchange = function(e) {
-        const preview = document.getElementById('preview');
-        const file = e.target.files[0];
+class PestClassifier {
+    constructor() {
+        this.fileInput = document.getElementById('file-input');
+        this.uploadArea = document.getElementById('upload-area');
+        this.uploadContent = document.getElementById('upload-content');
+        this.imagePreview = document.getElementById('image-preview');
+        this.previewImage = document.getElementById('preview-image');
+        this.browseBtn = document.getElementById('browse-btn');
+        this.changeImageBtn = document.getElementById('change-image');
+        this.analyzeBtn = document.getElementById('analyze-btn');
+        this.resultsSection = document.getElementById('results-section');
+        this.progressContainer = document.getElementById('progress-container');
+        this.analysisResults = document.getElementById('analysis-results');
+        this.newAnalysisBtn = document.getElementById('new-analysis-btn');
+        this.errorModal = document.getElementById('error-modal');
+        this.currentFile = null;
+        
+        this.initializeEventListeners();
+    }
+    
+    initializeEventListeners() {
+        // File input change
+        this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+        
+        // Browse button click
+        this.browseBtn.addEventListener('click', () => this.fileInput.click());
+        
+        // Change image button
+        this.changeImageBtn.addEventListener('click', () => this.resetUpload());
+        
+        // Analyze button
+        this.analyzeBtn.addEventListener('click', () => this.analyzeImage());
+        
+        // New analysis button
+        this.newAnalysisBtn.addEventListener('click', () => this.resetUpload());
+        
+        // Drag and drop
+        this.uploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
+        this.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+        this.uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
+        
+        // Modal close
+        document.getElementById('close-error-modal').addEventListener('click', () => this.closeErrorModal());
+        document.getElementById('retry-analysis').addEventListener('click', () => {
+            this.closeErrorModal();
+            this.analyzeImage();
+        });
+        
+        // Click outside modal to close
+        window.addEventListener('click', (e) => {
+            if (e.target === this.errorModal) {
+                this.closeErrorModal();
+            }
+        });
+    }
+    
+    handleFileSelect(event) {
+        const file = event.target.files[0];
         if (file) {
-            preview.src = URL.createObjectURL(file);
-            preview.style.display = 'block';
+            this.processFile(file);
         }
-    };
-
-    document.getElementById('upload-form').onsubmit = async function(e) {
-        e.preventDefault();
-        const loading = document.querySelector('.loading');
-        const result = document.getElementById('result');
-        const fileInput = document.getElementById('file-input');
-
-        if (!fileInput.files[0]) {
-            alert('Please select an image first');
+    }
+    
+    handleDragOver(event) {
+        event.preventDefault();
+        this.uploadArea.classList.add('drag-over');
+    }
+    
+    handleDragLeave(event) {
+        event.preventDefault();
+        this.uploadArea.classList.remove('drag-over');
+    }
+    
+    handleDrop(event) {
+        event.preventDefault();
+        this.uploadArea.classList.remove('drag-over');
+        
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            this.processFile(files[0]);
+        }
+    }
+    
+    processFile(file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            this.showError('Please select a valid image file (JPG, PNG, WebP).');
             return;
         }
-
-        loading.style.display = 'block';
-        result.style.display = 'none';
-
+        
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+            this.showError('Image size must be less than 10MB. Please choose a smaller image.');
+            return;
+        }
+        
+        this.currentFile = file;
+        
+        // Show image preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.previewImage.src = e.target.result;
+            this.showImagePreview(file);
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    showImagePreview(file) {
+        // Update image info
+        document.getElementById('image-name').textContent = file.name;
+        document.getElementById('image-size').textContent = this.formatFileSize(file.size);
+        
+        // Show preview, hide upload content
+        this.uploadContent.style.display = 'none';
+        this.imagePreview.style.display = 'block';
+        this.uploadArea.classList.add('has-image');
+    }
+    
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    resetUpload() {
+        this.currentFile = null;
+        this.fileInput.value = '';
+        this.uploadContent.style.display = 'block';
+        this.imagePreview.style.display = 'none';
+        this.resultsSection.style.display = 'none';
+        this.uploadArea.classList.remove('has-image');
+        this.analysisResults.style.display = 'none';
+        this.progressContainer.style.display = 'none';
+    }
+    
+    async analyzeImage() {
+        if (!this.currentFile) {
+            this.showError('Please select an image first.');
+            return;
+        }
+        
+        this.showProgress();
+        
         const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-
+        formData.append('file', this.currentFile);
+        
         try {
             const response = await fetch('/predict', {
                 method: 'POST',
                 body: formData
             });
             
-            const resultData = await response.json();
-            
-            if (resultData.error) {
-                alert('Error: ' + resultData.error);
-                return;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            const pestStatus = document.getElementById('pest-status');
-            pestStatus.textContent = resultData.message;
-            pestStatus.className = 'pest-alert ' + (resultData.is_pest ? 'pest-detected' : 'no-pest');
+            const result = await response.json();
             
-            document.getElementById('class-name').textContent = resultData.class_name || 'Unknown';
-            document.getElementById('confidence').textContent = resultData.confidence || 'N/A';
-            
-            const recommendation = document.getElementById('recommendation');
-            const pestInfoLink = document.getElementById('pest-info-link');
-            
-            if (resultData.is_pest) {
-                recommendation.innerHTML = `<p style="color: #c53030;">Consider consulting with a pest control expert.</p>`;
-                pestInfoLink.innerHTML = `<p><a href="${resultData.info_url}" class="upload-label" style="text-decoration: none; margin-top: 10px; display: inline-block;">View Pest Information</a></p>`;
-            } else {
-                recommendation.innerHTML = `<p style="color: #276749;">No immediate action needed.</p>`;
-                pestInfoLink.innerHTML = '';
+            if (result.error) {
+                throw new Error(result.error);
             }
+            
+            this.showResults(result);
+            
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error processing the image. Please try again.');
-        } finally {
-            loading.style.display = 'none';
-            result.style.display = 'block';
+            console.error('Analysis error:', error);
+            this.showError(error.message || 'An error occurred during analysis. Please try again.');
+            this.hideProgress();
         }
-    };
+    }
+    
+    showProgress() {
+        this.resultsSection.style.display = 'block';
+        this.progressContainer.style.display = 'block';
+        this.analysisResults.style.display = 'none';
+        
+        // Animate progress steps
+        let progress = 0;
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const steps = ['step-processing', 'step-analyzing', 'step-results'];
+        
+        const progressMessages = [
+            'Uploading image...',
+            'Processing image data...',
+            'Running AI analysis...',
+            'Generating results...'
+        ];
+        
+        let messageIndex = 0;
+        const progressInterval = setInterval(() => {
+            progress += 5;
+            progressFill.style.width = progress + '%';
+            
+            if (messageIndex < progressMessages.length && progress > messageIndex * 25) {
+                progressText.textContent = progressMessages[messageIndex];
+                if (messageIndex > 0) {
+                    document.getElementById(steps[messageIndex - 1]).classList.add('active');
+                }
+                messageIndex++;
+            }
+            
+            if (progress >= 90) {
+                clearInterval(progressInterval);
+            }
+        }, 100);
+        
+        // Store interval for cleanup
+        this.progressInterval = progressInterval;
+    }
+    
+    hideProgress() {
+        this.progressContainer.style.display = 'none';
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+        }
+    }
+    
+    showResults(result) {
+        this.hideProgress();
+        
+        // Show results section
+        this.analysisResults.style.display = 'block';
+        
+        // Update result image
+        document.getElementById('result-image').src = this.previewImage.src;
+        
+        // Update pest status
+        const pestStatus = document.getElementById('pest-status');
+        pestStatus.className = 'pest-status ' + (result.is_pest ? 'pest-detected' : 'no-pest');
+        pestStatus.innerHTML = `
+            <i class="fas ${result.is_pest ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i>
+            <span>${result.message}</span>
+        `;
+        
+        // Update detection details
+        document.getElementById('pest-name').textContent = result.class_name;
+        
+        // Update confidence
+        const confidence = parseFloat(result.confidence.replace('%', ''));
+        document.getElementById('confidence-text').textContent = result.confidence;
+        document.getElementById('confidence-meter').style.width = confidence + '%';
+        
+        const confidenceBadge = document.getElementById('confidence-badge');
+        confidenceBadge.textContent = result.confidence;
+        confidenceBadge.className = 'confidence-badge ' + this.getConfidenceClass(confidence);
+        
+        // Update recommendations
+        this.updateRecommendations(result);
+        
+        // Show details button if pest detected
+        if (result.is_pest && result.info_url) {
+            const detailsBtn = document.getElementById('view-details-btn');
+            detailsBtn.href = result.info_url;
+            detailsBtn.style.display = 'inline-flex';
+        }
+    }
+    
+    getConfidenceClass(confidence) {
+        if (confidence >= 90) return 'high';
+        if (confidence >= 70) return 'medium';
+        return 'low';
+    }
+    
+    updateRecommendations(result) {
+        const recommendationContent = document.getElementById('recommendation-content');
+        
+        if (result.is_pest) {
+            recommendationContent.innerHTML = `
+                <div class="recommendation-item urgent">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Immediate Action Required</strong>
+                        <p>A pest has been detected. Consider implementing control measures promptly to prevent crop damage.</p>
+                    </div>
+                </div>
+                <div class="recommendation-item">
+                    <i class="fas fa-search"></i>
+                    <div>
+                        <strong>Detailed Inspection</strong>
+                        <p>Examine the affected area thoroughly to assess the extent of infestation.</p>
+                    </div>
+                </div>
+                <div class="recommendation-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <div>
+                        <strong>Consult Experts</strong>
+                        <p>Contact agricultural extension services or pest control professionals for guidance.</p>
+                    </div>
+                </div>
+            `;
+        } else {
+            recommendationContent.innerHTML = `
+                <div class="recommendation-item positive">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>No Immediate Threat</strong>
+                        <p>The analyzed image does not show signs of harmful pest activity.</p>
+                    </div>
+                </div>
+                <div class="recommendation-item">
+                    <i class="fas fa-eye"></i>
+                    <div>
+                        <strong>Continue Monitoring</strong>
+                        <p>Maintain regular field inspections to catch potential issues early.</p>
+                    </div>
+                </div>
+                <div class="recommendation-item">
+                    <i class="fas fa-leaf"></i>
+                    <div>
+                        <strong>Preventive Measures</strong>
+                        <p>Implement integrated pest management practices to prevent future infestations.</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    showError(message) {
+        document.getElementById('error-message').textContent = message;
+        this.errorModal.style.display = 'flex';
+    }
+    
+    closeErrorModal() {
+        this.errorModal.style.display = 'none';
+    }
+}
+
+// Initialize the classifier when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    new PestClassifier();
+});
 </script>
+{% endblock %}
+
+{% block additional_styles %}
+.classification-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.classification-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.classification-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.quick-tips {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--gray-100);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.tip-item i {
+    color: var(--primary-color);
+}
+
+.classification-main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+.upload-section {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.upload-area {
+    padding: 3rem;
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--radius-xl);
+    text-align: center;
+    transition: all var(--transition-normal);
+    position: relative;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.upload-area:hover {
+    border-color: var(--primary-color);
+    background: var(--gray-50);
+}
+
+.upload-area.drag-over {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    background-opacity: 0.1;
+    transform: scale(1.02);
+}
+
+.upload-area.has-image {
+    border: 2px solid var(--primary-color);
+    background: var(--gray-50);
+}
+
+.upload-content {
+    width: 100%;
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.upload-content h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.upload-content p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.upload-formats {
+    margin-top: 1rem;
+}
+
+.upload-formats small {
+    color: var(--text-muted);
+}
+
+.image-preview {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.image-preview img {
+    width: 200px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.image-info {
+    flex: 1;
+}
+
+.image-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.image-size {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.preview-actions {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.results-section {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.progress-container {
+    padding: 2rem;
+    background: var(--gray-50);
+}
+
+.progress-header h3 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.step.active {
+    color: var(--primary-color);
+}
+
+.step i {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step.active i {
+    background: var(--primary-color);
+    color: white;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.analysis-results {
+    padding: 2rem;
+}
+
+.result-header {
+    margin-bottom: 2rem;
+}
+
+.pest-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.pest-status.pest-detected {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 2px solid #fecaca;
+}
+
+.pest-status.no-pest {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 2px solid #bbf7d0;
+}
+
+.result-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.detection-card,
+.recommendation-card {
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--gray-200);
+}
+
+.card-header {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-header h3 {
+    margin: 0;
+    color: white;
+}
+
+.card-content {
+    padding: 1.5rem;
+}
+
+.detected-pest {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.pest-image-container {
+    flex-shrink: 0;
+}
+
+.pest-image-container img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.pest-details {
+    flex: 1;
+}
+
+.pest-details h4 {
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+}
+
+.pest-details p {
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.confidence-meter {
+    margin-top: 1rem;
+}
+
+.confidence-meter label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.meter-bar {
+    width: 100%;
+    height: 20px;
+    background: var(--gray-200);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+    width: 0%;
+    transition: width 1s ease;
+}
+
+.confidence-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.confidence-badge.high {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.confidence-badge.medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.confidence-badge.low {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.recommendation-card {
+    margin-top: 1rem;
+}
+
+.recommendation-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    background: white;
+    border: 1px solid var(--gray-200);
+}
+
+.recommendation-item:last-child {
+    margin-bottom: 0;
+}
+
+.recommendation-item.urgent {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.recommendation-item.positive {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.recommendation-item i {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.recommendation-item.urgent i {
+    color: #dc2626;
+}
+
+.recommendation-item.positive i {
+    color: #16a34a;
+}
+
+.recommendation-item strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+}
+
+.recommendation-item p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.result-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.quick-facts,
+.next-steps,
+.try-again {
+    background: var(--gray-50);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+}
+
+.quick-facts h4,
+.next-steps h4 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.next-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.next-step:last-child {
+    border-bottom: none;
+}
+
+.next-step i {
+    color: var(--primary-color);
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.try-again {
+    text-align: center;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: var(--radius-xl);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+    background: var(--gray-100);
+}
+
+.modal-body {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.error-icon {
+    font-size: 3rem;
+    color: var(--error-color);
+    margin-bottom: 1rem;
+}
+
+.error-suggestions {
+    text-align: left;
+    margin-top: 1.5rem;
+    background: var(--gray-50);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+}
+
+.error-suggestions h4 {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.error-suggestions ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.error-suggestions li {
+    margin-bottom: 0.25rem;
+    color: var(--text-secondary);
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--gray-200);
+    text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .classification-container {
+        padding: 1rem 0.5rem;
+    }
+    
+    .classification-header h1 {
+        font-size: 2rem;
+    }
+    
+    .quick-tips {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .upload-area {
+        padding: 2rem 1rem;
+    }
+    
+    .image-preview {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .progress-steps {
+        gap: 0.5rem;
+    }
+    
+    .step span {
+        font-size: 0.75rem;
+    }
+    
+    .result-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .detected-pest {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
 {% endblock %}
