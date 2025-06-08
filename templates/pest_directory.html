@@ -40,7 +40,7 @@
             <div class="search-box">
                 <i class="fas fa-search"></i>
                 <input type="text" id="search-input" placeholder="Search pests by name, type, or symptoms...">
-                <button type="button" id="clear-search" class="clear-btn" style="display: none;">
+                <button class="clear-btn" id="clear-search" style="display: none;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -48,111 +48,109 @@
         
         <div class="filter-controls">
             <div class="filter-group">
-                <label>Category:</label>
+                <label for="category-filter">Category:</label>
                 <select id="category-filter">
                     <option value="">All Categories</option>
                     <option value="flying">Flying Pests</option>
                     <option value="crawling">Crawling Pests</option>
                     <option value="soft-bodied">Soft-bodied Pests</option>
-                    <option value="larval">Larval Pests</option>
+                    <option value="hard-bodied">Hard-bodied Pests</option>
                 </select>
             </div>
             
             <div class="filter-group">
-                <label>Sort by:</label>
-                <select id="sort-filter">
-                    <option value="name">Name (A-Z)</option>
-                    <option value="name-desc">Name (Z-A)</option>
-                    <option value="type">Type</option>
-                    <option value="threat">Threat Level</option>
+                <label for="threat-filter">Threat Level:</label>
+                <select id="threat-filter">
+                    <option value="">All Threats</option>
+                    <option value="high">High Risk</option>
+                    <option value="medium">Medium Risk</option>
+                    <option value="low">Low Risk</option>
                 </select>
             </div>
             
-            <div class="filter-group">
-                <label>View:</label>
-                <div class="view-toggle">
-                    <button type="button" class="view-btn active" data-view="grid">
-                        <i class="fas fa-th"></i>
-                    </button>
-                    <button type="button" class="view-btn" data-view="list">
-                        <i class="fas fa-list"></i>
-                    </button>
-                </div>
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="grid" title="Grid View">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button class="view-btn" data-view="list" title="List View">
+                    <i class="fas fa-list"></i>
+                </button>
             </div>
+            
+            <button class="reset-btn" id="reset-filters">
+                <i class="fas fa-undo"></i> Reset
+            </button>
         </div>
     </div>
 
     <!-- Results Section -->
     <div class="results-section">
         <div class="results-header">
-            <div class="results-count">
-                <span id="results-count">{{ pests|length }}</span> pests found
+            <div class="results-count" id="results-count">
+                Showing {{ pests|length }} pests
             </div>
-            <div class="results-actions">
-                <button type="button" id="reset-filters" class="btn btn-outline btn-sm">
-                    <i class="fas fa-undo"></i>
-                    Reset Filters
-                </button>
+            <div class="sort-controls">
+                <label for="sort-by">Sort by:</label>
+                <select id="sort-by">
+                    <option value="name">Name</option>
+                    <option value="threat">Threat Level</option>
+                    <option value="category">Category</option>
+                </select>
             </div>
         </div>
 
-        <!-- Pest Grid/List -->
-        <div class="pest-container" id="pest-container">
-            {% for pest_id, pest in pests.items() %}
+        <div class="pest-container grid-view" id="pest-container">
+            {% for pest in pests %}
             <div class="pest-card" 
-                 data-name="{{ pest.name.lower() }}" 
-                 data-scientific="{{ pest.scientific_name.lower() }}"
-                 data-category="{{ pest_id|get_category }}"
-                 data-threat="{{ pest_id|get_threat_level }}">
+                 data-name="{{ pest.name|lower }}" 
+                 data-category="{{ pest.category|lower }}" 
+                 data-threat="{{ pest.threat_level|lower }}"
+                 data-scientific="{{ pest.scientific_name|lower }}"
+                 onclick="openPreviewModal('{{ pest.name }}', '{{ pest.scientific_name }}', '{{ pest.description }}', '{{ pest.image }}', {{ pest.symptoms|tojsonfilter }}, '{{ url_for('pest_info', pest_name=pest.name.lower().replace(' ', '_')) }}')">
                 
                 <div class="pest-image-section">
                     <img src="{{ url_for('public_assets', filename='images/pests/' + pest.image) }}" 
-                         alt="{{ pest.name }}"
-                         class="pest-image"
-                         loading="lazy">
-                    <div class="pest-overlay">
-                        <div class="threat-level {{ pest_id|get_threat_level }}">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span>{{ pest_id|get_threat_text }}</span>
-                        </div>
-                    </div>
+                         alt="{{ pest.name }}" class="pest-image">
+                    <div class="pest-badge">{{ pest.threat_level|title }} Risk</div>
                 </div>
                 
                 <div class="pest-content">
                     <div class="pest-header">
-                        <h3 class="pest-name">{{ pest.name }}</h3>
-                        <span class="pest-category">{{ pest_id|get_category_display }}</span>
+                        <div class="pest-title">
+                            <h3>{{ pest.name }}</h3>
+                            <p class="pest-scientific">{{ pest.scientific_name }}</p>
+                        </div>
+                        <div class="pest-type-badge">{{ pest.category|title }}</div>
                     </div>
                     
-                    <p class="pest-scientific">{{ pest.scientific_name }}</p>
-                    <p class="pest-summary">{{ pest.summary }}</p>
+                    <p class="pest-description">{{ pest.description[:120] }}...</p>
                     
-                    <!-- Quick Info -->
                     <div class="quick-info">
-                        <div class="info-item">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span>{{ pest.symptoms|length }} symptoms</span>
-                        </div>
-                        <div class="info-item">
-                            <i class="fas fa-leaf"></i>
-                            <span>{{ pest.organic_treatment|length }} organic treatments</span>
-                        </div>
-                        <div class="info-item">
-                            <i class="fas fa-flask"></i>
-                            <span>{{ pest.chemical_treatment|length }} chemical treatments</span>
+                        <h4>Quick Info</h4>
+                        <div class="info-list">
+                            <div class="info-item">
+                                <i class="fas fa-eye"></i>
+                                <span>{{ pest.size }}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-leaf"></i>
+                                <span>{{ pest.common_crops|join(', ') }}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>{{ pest.season }}</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Actions -->
                     <div class="pest-actions">
-                        <a href="{{ url_for('pest_details', pest_name=pest_id) }}" class="btn btn-primary">
-                            <i class="fas fa-info-circle"></i>
-                            <span>View Details</span>
-                        </a>
-                        <button type="button" class="btn btn-outline preview-btn" data-pest="{{ pest_id }}">
-                            <i class="fas fa-eye"></i>
-                            <span>Quick Preview</span>
+                        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); openPreviewModal('{{ pest.name }}', '{{ pest.scientific_name }}', '{{ pest.description }}', '{{ pest.image }}', {{ pest.symptoms|tojsonfilter }}, '{{ url_for('pest_info', pest_name=pest.name.lower().replace(' ', '_')) }}')">
+                            <i class="fas fa-eye"></i> Quick View
                         </button>
+                        <a href="{{ url_for('pest_info', pest_name=pest.name.lower().replace(' ', '_')) }}" 
+                           class="btn btn-primary btn-sm" onclick="event.stopPropagation();">
+                            <i class="fas fa-info-circle"></i> Learn More
+                        </a>
                     </div>
                 </div>
             </div>
@@ -165,47 +163,46 @@
                 <i class="fas fa-search"></i>
             </div>
             <h3>No pests found</h3>
-            <p>Try adjusting your search terms or filters to find what you're looking for.</p>
-            <button type="button" class="btn btn-primary" onclick="resetAllFilters()">
-                <i class="fas fa-undo"></i>
-                Clear All Filters
+            <p>Try adjusting your search criteria or filters to find what you're looking for.</p>
+            <button class="btn btn-primary" id="clear-all-filters">
+                <i class="fas fa-undo"></i> Clear All Filters
             </button>
         </div>
     </div>
 </div>
 
-<!-- Quick Preview Modal -->
+<!-- Preview Modal -->
 <div class="modal" id="preview-modal">
     <div class="modal-content large">
         <div class="modal-header">
-            <h3 id="preview-title">Pest Preview</h3>
-            <button type="button" class="modal-close" onclick="closePreviewModal()">
+            <h3 id="modal-title">Pest Preview</h3>
+            <button class="modal-close" onclick="closePreviewModal()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="modal-body">
             <div class="preview-content">
                 <div class="preview-image">
-                    <img id="preview-img" alt="Pest image">
+                    <img id="modal-image" alt="Pest image">
                 </div>
                 <div class="preview-info">
-                    <h4 id="preview-name"></h4>
-                    <p id="preview-scientific"></p>
-                    <p id="preview-description"></p>
+                    <h4 id="modal-pest-name">Pest Name</h4>
+                    <p id="modal-scientific-name">Scientific Name</p>
+                    <p id="modal-description">Description</p>
                     
                     <div class="preview-symptoms">
                         <h5>Common Symptoms:</h5>
-                        <ul id="preview-symptoms-list"></ul>
+                        <ul id="modal-symptoms">
+                            <!-- Symptoms will be populated by JavaScript -->
+                        </ul>
                     </div>
                     
                     <div class="preview-actions">
-                        <a href="#" id="preview-details-link" class="btn btn-primary">
-                            <i class="fas fa-arrow-right"></i>
-                            View Full Details
+                        <a href="#" id="modal-learn-more" class="btn btn-primary">
+                            <i class="fas fa-book"></i> Full Information
                         </a>
-                        <button type="button" class="btn btn-outline" onclick="closePreviewModal()">
-                            <i class="fas fa-times"></i>
-                            Close
+                        <button class="btn btn-outline" onclick="closePreviewModal()">
+                            <i class="fas fa-times"></i> Close
                         </button>
                     </div>
                 </div>
@@ -217,210 +214,184 @@
 <script>
 class PestDirectory {
     constructor() {
+        this.allPests = Array.from(document.querySelectorAll('.pest-card'));
         this.searchInput = document.getElementById('search-input');
-        this.categoryFilter = document.getElementById('category-filter');
-        this.sortFilter = document.getElementById('sort-filter');
         this.clearSearchBtn = document.getElementById('clear-search');
-        this.resetFiltersBtn = document.getElementById('reset-filters');
+        this.categoryFilter = document.getElementById('category-filter');
+        this.threatFilter = document.getElementById('threat-filter');
+        this.sortBy = document.getElementById('sort-by');
+        this.viewToggle = document.querySelectorAll('.view-btn');
+        this.resetBtn = document.getElementById('reset-filters');
         this.pestContainer = document.getElementById('pest-container');
         this.resultsCount = document.getElementById('results-count');
         this.noResults = document.getElementById('no-results');
-        this.previewModal = document.getElementById('preview-modal');
-        this.viewButtons = document.querySelectorAll('.view-btn');
-        
-        this.pestCards = Array.from(document.querySelectorAll('.pest-card'));
-        this.originalCards = [...this.pestCards];
-        
-        this.initializeEventListeners();
-        this.updateResultsCount();
+
+        this.initEventListeners();
+        this.updateResults();
     }
-    
-    initializeEventListeners() {
-        // Search input
-        this.searchInput.addEventListener('input', () => this.handleSearch());
-        this.clearSearchBtn.addEventListener('click', () => this.clearSearch());
-        
-        // Filter dropdowns
-        this.categoryFilter.addEventListener('change', () => this.applyFilters());
-        this.sortFilter.addEventListener('change', () => this.applySorting());
-        
-        // Reset filters
-        this.resetFiltersBtn.addEventListener('click', () => this.resetAllFilters());
-        
-        // View toggle
-        this.viewButtons.forEach(btn => {
-            btn.addEventListener('click', () => this.toggleView(btn.dataset.view));
+
+    initEventListeners() {
+        this.searchInput.addEventListener('input', () => {
+            this.toggleClearButton();
+            this.filterPests();
         });
-        
-        // Preview buttons
-        document.querySelectorAll('.preview-btn').forEach(btn => {
-            btn.addEventListener('click', () => this.showPreview(btn.dataset.pest));
+
+        this.clearSearchBtn.addEventListener('click', () => {
+            this.searchInput.value = '';
+            this.toggleClearButton();
+            this.filterPests();
         });
-        
-        // Modal close on outside click
-        window.addEventListener('click', (e) => {
-            if (e.target === this.previewModal) {
-                this.closePreviewModal();
-            }
+
+        this.categoryFilter.addEventListener('change', () => this.filterPests());
+        this.threatFilter.addEventListener('change', () => this.filterPests());
+        this.sortBy.addEventListener('change', () => this.sortPests());
+
+        this.viewToggle.forEach(btn => {
+            btn.addEventListener('click', () => this.toggleView(btn));
         });
-        
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.previewModal.style.display === 'flex') {
-                this.closePreviewModal();
-            }
-        });
+
+        this.resetBtn.addEventListener('click', () => this.resetAllFilters());
+        document.getElementById('clear-all-filters').addEventListener('click', () => this.resetAllFilters());
     }
-    
-    handleSearch() {
-        const query = this.searchInput.value.toLowerCase().trim();
-        
-        if (query) {
-            this.clearSearchBtn.style.display = 'block';
-        } else {
-            this.clearSearchBtn.style.display = 'none';
-        }
-        
-        this.applyFilters();
+
+    toggleClearButton() {
+        this.clearSearchBtn.style.display = this.searchInput.value ? 'block' : 'none';
     }
-    
-    clearSearch() {
-        this.searchInput.value = '';
-        this.clearSearchBtn.style.display = 'none';
-        this.applyFilters();
-    }
-    
-    applyFilters() {
-        const searchQuery = this.searchInput.value.toLowerCase().trim();
+
+    filterPests() {
+        const searchTerm = this.searchInput.value.toLowerCase();
         const categoryFilter = this.categoryFilter.value;
-        
-        let visibleCards = this.originalCards.filter(card => {
-            // Search filter
-            if (searchQuery) {
-                const name = card.dataset.name;
-                const scientific = card.dataset.scientific;
-                const summary = card.querySelector('.pest-summary').textContent.toLowerCase();
-                
-                if (!name.includes(searchQuery) && 
-                    !scientific.includes(searchQuery) && 
-                    !summary.includes(searchQuery)) {
-                    return false;
-                }
-            }
+        const threatFilter = this.threatFilter.value;
+
+        let visibleCount = 0;
+
+        this.allPests.forEach(pest => {
+            const name = pest.dataset.name;
+            const scientific = pest.dataset.scientific;
+            const category = pest.dataset.category;
+            const threat = pest.dataset.threat;
+
+            const matchesSearch = !searchTerm || 
+                name.includes(searchTerm) || 
+                scientific.includes(searchTerm);
             
-            // Category filter
-            if (categoryFilter && card.dataset.category !== categoryFilter) {
-                return false;
-            }
+            const matchesCategory = !categoryFilter || category === categoryFilter;
+            const matchesThreat = !threatFilter || threat === threatFilter;
+
+            const isVisible = matchesSearch && matchesCategory && matchesThreat;
             
-            return true;
+            pest.style.display = isVisible ? 'block' : 'none';
+            if (isVisible) visibleCount++;
         });
-        
-        this.displayCards(visibleCards);
-        this.updateResultsCount(visibleCards.length);
+
+        this.updateResults(visibleCount);
+        this.sortPests();
     }
-    
-    applySorting() {
-        const sortBy = this.sortFilter.value;
-        const visibleCards = Array.from(this.pestContainer.querySelectorAll('.pest-card:not([style*="display: none"])'));
+
+    sortPests() {
+        const sortBy = this.sortBy.value;
+        const visiblePests = this.allPests.filter(pest => pest.style.display !== 'none');
         
-        visibleCards.sort((a, b) => {
-            switch (sortBy) {
+        visiblePests.sort((a, b) => {
+            let aVal, bVal;
+            
+            switch(sortBy) {
                 case 'name':
-                    return a.dataset.name.localeCompare(b.dataset.name);
-                case 'name-desc':
-                    return b.dataset.name.localeCompare(a.dataset.name);
-                case 'type':
-                    return a.dataset.category.localeCompare(b.dataset.category);
+                    aVal = a.dataset.name;
+                    bVal = b.dataset.name;
+                    break;
                 case 'threat':
                     const threatOrder = { 'high': 3, 'medium': 2, 'low': 1 };
-                    return (threatOrder[b.dataset.threat] || 0) - (threatOrder[a.dataset.threat] || 0);
+                    aVal = threatOrder[a.dataset.threat];
+                    bVal = threatOrder[b.dataset.threat];
+                    return bVal - aVal; // Descending for threat
+                case 'category':
+                    aVal = a.dataset.category;
+                    bVal = b.dataset.category;
+                    break;
                 default:
-                    return 0;
+                    aVal = a.dataset.name;
+                    bVal = b.dataset.name;
             }
+            
+            return aVal.localeCompare(bVal);
         });
-        
-        // Re-append sorted cards
-        visibleCards.forEach(card => this.pestContainer.appendChild(card));
-    }
-    
-    displayCards(cards) {
-        // Hide all cards first
-        this.pestCards.forEach(card => {
-            card.style.display = 'none';
+
+        // Reorder elements in DOM
+        visiblePests.forEach(pest => {
+            this.pestContainer.appendChild(pest);
         });
-        
-        // Show filtered cards
-        cards.forEach(card => {
-            card.style.display = 'block';
-        });
-        
-        // Show/hide no results message
-        if (cards.length === 0) {
-            this.noResults.style.display = 'block';
-        } else {
-            this.noResults.style.display = 'none';
-        }
-        
-        // Apply sorting to visible cards
-        this.applySorting();
     }
-    
-    updateResultsCount(count = null) {
-        const actualCount = count !== null ? count : this.pestCards.length;
-        this.resultsCount.textContent = actualCount;
+
+    toggleView(activeBtn) {
+        this.viewToggle.forEach(btn => btn.classList.remove('active'));
+        activeBtn.classList.add('active');
+        
+        const view = activeBtn.dataset.view;
+        this.pestContainer.className = `pest-container ${view}-view`;
     }
-    
+
+    updateResults(count = null) {
+        const displayCount = count !== null ? count : this.allPests.length;
+        this.resultsCount.textContent = `Showing ${displayCount} pest${displayCount !== 1 ? 's' : ''}`;
+        
+        this.noResults.style.display = displayCount === 0 ? 'block' : 'none';
+        this.pestContainer.style.display = displayCount === 0 ? 'none' : 'grid';
+    }
+
     resetAllFilters() {
         this.searchInput.value = '';
         this.categoryFilter.value = '';
-        this.sortFilter.value = 'name';
-        this.clearSearchBtn.style.display = 'none';
+        this.threatFilter.value = '';
+        this.sortBy.value = 'name';
+        this.toggleClearButton();
         
-        this.displayCards(this.originalCards);
-        this.updateResultsCount();
+        this.allPests.forEach(pest => {
+            pest.style.display = 'block';
+        });
+        
+        this.updateResults();
+        this.sortPests();
     }
-    
-    toggleView(view) {
-        this.viewButtons.forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-view="${view}"]`).classList.add('active');
-        
-        this.pestContainer.className = `pest-container ${view}-view`;
-    }
-    
-    showPreview(pestId) {
-        // This would typically fetch data via AJAX, but for now we'll use the data from the page
-        const card = document.querySelector(`[data-pest="${pestId}"]`).closest('.pest-card');
-        const name = card.querySelector('.pest-name').textContent;
-        const scientific = card.querySelector('.pest-scientific').textContent;
-        const summary = card.querySelector('.pest-summary').textContent;
-        const image = card.querySelector('.pest-image').src;
-        
-        // Update modal content
-        document.getElementById('preview-title').textContent = `${name} Preview`;
-        document.getElementById('preview-name').textContent = name;
-        document.getElementById('preview-scientific').textContent = scientific;
-        document.getElementById('preview-description').textContent = summary;
-        document.getElementById('preview-img').src = image;
-        document.getElementById('preview-details-link').href = `/pest/${pestId}`;
-        
-        // Show modal
-        this.previewModal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-    
+
     closePreviewModal() {
-        this.previewModal.style.display = 'none';
-        document.body.style.overflow = 'auto';
+        document.getElementById('preview-modal').style.display = 'none';
     }
 }
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    new PestDirectory();
-});
+function openPreviewModal(name, scientificName, description, image, symptoms, learnMoreUrl) {
+    const modal = document.getElementById('preview-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalImage = document.getElementById('modal-image');
+    const modalPestName = document.getElementById('modal-pest-name');
+    const modalScientificName = document.getElementById('modal-scientific-name');
+    const modalDescription = document.getElementById('modal-description');
+    const modalSymptoms = document.getElementById('modal-symptoms');
+    const modalLearnMore = document.getElementById('modal-learn-more');
 
-// Global functions for template access
+    modalTitle.textContent = `${name} - Quick Preview`;
+    modalImage.src = `/public_assets/images/pests/${image}`;
+    modalImage.alt = name;
+    modalPestName.textContent = name;
+    modalScientificName.textContent = scientificName;
+    modalDescription.textContent = description;
+    modalLearnMore.href = learnMoreUrl;
+
+    // Clear existing symptoms
+    modalSymptoms.innerHTML = '';
+    
+    // Add symptoms
+    if (Array.isArray(symptoms)) {
+        symptoms.forEach(symptom => {
+            const li = document.createElement('li');
+            li.textContent = symptom;
+            modalSymptoms.appendChild(li);
+        });
+    }
+
+    modal.style.display = 'flex';
+}
+
 function resetAllFilters() {
     if (window.pestDirectory) {
         window.pestDirectory.resetAllFilters();
@@ -438,605 +409,4 @@ document.addEventListener('DOMContentLoaded', () => {
     window.pestDirectory = new PestDirectory();
 });
 </script>
-{% endblock %}
-
-{% block additional_styles %}
-.directory-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-}
-
-.directory-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    border-radius: var(--radius-2xl);
-    color: white;
-    padding: 4rem 2rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.directory-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20c0-11.046-8.954-20-20-20v20h20z' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E") repeat;
-    pointer-events: none;
-}
-
-.header-content {
-    position: relative;
-    z-index: 1;
-}
-
-.directory-header h1 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.hero-description {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 2rem;
-    border-radius: var(--radius-xl);
-    margin: 2rem auto;
-    max-width: 700px;
-    box-shadow: var(--shadow-md);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.hero-description p {
-    font-size: 1.25rem;
-    line-height: 1.7;
-    color: var(--text-primary);
-    font-weight: 600;
-    margin: 0;
-}
-
-.quick-stats {
-    display: flex;
-    justify-content: center;
-    gap: 3rem;
-    margin-top: 2rem;
-}
-
-.stat-card {
-    text-align: center;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 1.5rem;
-    border-radius: var(--radius-lg);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 0.5rem;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.8);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.search-filter-section {
-    background: white;
-    padding: 2rem;
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-lg);
-    margin-bottom: 2rem;
-    border: 1px solid var(--gray-200);
-}
-
-.search-container {
-    margin-bottom: 2rem;
-}
-
-.search-box {
-    position: relative;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.search-box i {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    font-size: 1.1rem;
-}
-
-.search-box input {
-    width: 100%;
-    padding: 1rem 1rem 1rem 3rem;
-    border: 2px solid var(--gray-300);
-    border-radius: var(--radius-lg);
-    font-size: 1rem;
-    background: white;
-    transition: all var(--transition-fast);
-}
-
-.search-box input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-}
-
-.clear-btn {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: var(--radius-sm);
-    transition: all var(--transition-fast);
-}
-
-.clear-btn:hover {
-    color: var(--error-color);
-    background: var(--gray-100);
-}
-
-.filter-controls {
-    display: flex;
-    gap: 2rem;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.filter-group {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.filter-group label {
-    font-weight: 700;
-    color: var(--text-primary);
-    white-space: nowrap;
-}
-
-.filter-group select {
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius-md);
-    background: white;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.filter-group select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
-}
-
-.view-toggle {
-    display: flex;
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-}
-
-.view-btn {
-    padding: 0.5rem 1rem;
-    background: white;
-    border: none;
-    cursor: pointer;
-    color: var(--text-primary);
-    transition: all var(--transition-fast);
-    font-weight: 600;
-}
-
-.view-btn:hover {
-    background: var(--gray-50);
-}
-
-.view-btn.active {
-    background: var(--primary-color);
-    color: white;
-}
-
-.results-section {
-    margin-bottom: 2rem;
-}
-
-.results-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid var(--gray-200);
-}
-
-.results-count {
-    font-size: 1.1rem;
-    color: var(--text-primary);
-    font-weight: 700;
-}
-
-.results-count span {
-    font-weight: 700;
-    color: var(--primary-color);
-}
-
-.pest-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 2rem;
-    transition: all var(--transition-normal);
-}
-
-.pest-container.list-view {
-    grid-template-columns: 1fr;
-}
-
-.pest-container.list-view .pest-card {
-    display: flex;
-    align-items: flex-start;
-}
-
-.pest-container.list-view .pest-image-section {
-    width: 200px;
-    flex-shrink: 0;
-}
-
-.pest-container.list-view .pest-content {
-    flex: 1;
-    padding: 1.5rem;
-}
-
-.pest-card {
-    background: white;
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--gray-200);
-    transition: all var(--transition-normal);
-    position: relative;
-}
-
-.pest-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-xl);
-}
-
-.pest-image-section {
-    position: relative;
-    height: 250px;
-    overflow: hidden;
-}
-
-.pest-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform var(--transition-slow);
-}
-
-.pest-card:hover .pest-image {
-    transform: scale(1.05);
-}
-
-.pest-overlay {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-}
-
-.threat-level {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-lg);
-    font-size: 0.875rem;
-    font-weight: 500;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.threat-level.high {
-    background: rgba(239, 68, 68, 0.9);
-    color: white;
-}
-
-.threat-level.medium {
-    background: rgba(245, 158, 11, 0.9);
-    color: white;
-}
-
-.threat-level.low {
-    background: rgba(34, 197, 94, 0.9);
-    color: white;
-}
-
-.pest-content {
-    padding: 2rem;
-}
-
-.pest-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
-.pest-name {
-    font-size: 1.5rem;
-    margin: 0;
-    color: var(--text-primary);
-    font-weight: 600;
-}
-
-.pest-category {
-    color: var(--text-primary);
-    font-weight: 600;
-    background: var(--bg-secondary);
-}
-
-.pest-scientific {
-    color: var(--text-secondary);
-    font-weight: 600;
-}
-
-.pest-summary {
-    color: var(--text-body);
-    font-weight: 500;
-}
-
-.quick-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    margin-bottom: 1.5rem;
-    padding: 1.2rem;
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--gray-200);
-}
-
-.info-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.9rem;
-    color: var(--text-body);
-    font-weight: 500;
-}
-
-.info-item i {
-    color: var(--primary-color);
-    width: 18px;
-    text-align: center;
-    font-size: 1rem;
-}
-
-.pest-actions {
-    display: flex;
-    gap: 1rem;
-}
-
-.pest-actions .btn {
-    flex: 1;
-    justify-content: center;
-}
-
-.no-results {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: var(--text-body);
-}
-
-.no-results-icon {
-    font-size: 4rem;
-    color: var(--text-muted);
-    margin-bottom: 1.5rem;
-}
-
-.no-results h3 {
-    color: var(--text-primary);
-    margin-bottom: 1rem;
-}
-
-.no-results p {
-    margin-bottom: 2rem;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Modal Styles */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 2000;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-}
-
-.modal-content.large {
-    max-width: 900px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.preview-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    align-items: flex-start;
-}
-
-.preview-image img {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-}
-
-.preview-info h4 {
-    font-size: 1.75rem;
-    margin-bottom: 0.5rem;
-    color: var(--text-primary);
-}
-
-.preview-info p {
-    color: var(--text-body);
-    margin-bottom: 1rem;
-    font-weight: 500;
-}
-
-.preview-symptoms {
-    margin: 1.5rem 0;
-}
-
-.preview-symptoms h5 {
-    color: var(--text-primary);
-    margin-bottom: 0.75rem;
-}
-
-.preview-symptoms ul {
-    list-style: none;
-    padding: 0;
-}
-
-.preview-symptoms li {
-    padding: 0.5rem 0;
-    position: relative;
-    padding-left: 1.5rem;
-    color: var(--text-body);
-    font-weight: 500;
-}
-
-.preview-symptoms li::before {
-    content: '•';
-    position: absolute;
-    left: 0;
-    color: var(--primary-color);
-    font-weight: bold;
-}
-
-.preview-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    flex-wrap: wrap;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .directory-container {
-        padding: 1rem 0.5rem;
-    }
-    
-    .directory-header {
-        padding: 3rem 1rem;
-    }
-    
-    .directory-header h1 {
-        font-size: 2rem;
-    }
-    
-    .quick-stats {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .search-filter-section {
-        padding: 1.5rem;
-    }
-    
-    .filter-controls {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: stretch;
-    }
-    
-    .filter-group {
-        justify-content: space-between;
-    }
-    
-    .results-header {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: stretch;
-    }
-    
-    .pest-container {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-    
-    .pest-container.list-view .pest-card {
-        flex-direction: column;
-    }
-    
-    .pest-container.list-view .pest-image-section {
-        width: 100%;
-        height: 200px;
-    }
-    
-    .pest-container.list-view .pest-content {
-        padding: 1.5rem;
-    }
-    
-    .pest-actions {
-        flex-direction: column;
-    }
-    
-    .preview-content {
-        grid-template-columns: 1fr;
-    }
-    
-    .preview-actions {
-        flex-direction: column;
-    }
-}
-
-@media (max-width: 480px) {
-    .directory-header h1 {
-        font-size: 1.75rem;
-    }
-    
-    .pest-content {
-        padding: 1.5rem;
-    }
-    
-    .pest-header {
-        flex-direction: column;
-        gap: 0.5rem;
-        align-items: flex-start;
-    }
-    
-    .quick-info {
-        padding: 0.75rem;
-    }
-}
 {% endblock %}
