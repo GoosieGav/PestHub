@@ -8,7 +8,9 @@
     <div class="directory-header">
         <div class="header-content">
             <h1>Comprehensive Pest Directory</h1>
-            <p class="subtitle">Explore detailed information about agricultural pests, their identification, treatment options, and prevention strategies.</p>
+            <div class="hero-description">
+                <p>Explore detailed information about agricultural pests, their identification, treatment options, and prevention strategies.</p>
+            </div>
             
             <!-- Quick Stats -->
             <div class="quick-stats">
@@ -475,14 +477,22 @@ document.addEventListener('DOMContentLoaded', () => {
     text-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.subtitle {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
-    color: var(--text-on-primary);  /* Changed from rgba(255, 255, 255, 0.9) to var(--text-on-primary) */
+.hero-description {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2rem;
+    border-radius: var(--radius-xl);
+    margin: 2rem auto;
     max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.1);  /* Added for better readability */
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-description p {
+    font-size: 1.25rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+    font-weight: 600;
+    margin: 0;
 }
 
 .quick-stats {
