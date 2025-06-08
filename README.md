@@ -19,7 +19,44 @@ Follow these steps to set up and run PEST-Hub on your local machine:
    cd PestHub
    ```
 
-2. **Create required directories**
+2. **Directory Structure**
+   
+   The repository includes the following important directories:
+   
+   ```
+   PestHub/
+   ├── public_assets/          # Public static assets (included in repository)
+   │   ├── images/
+   │   │   ├── pests/          # Images of pests used in UI
+   │   │   ├── ui/             # UI elements and diagrams
+   │   │   └── damage/         # Pest damage images
+   ├── templates/              # HTML templates
+   ├── app.py                  # Main Flask application
+   ├── cnn_model.py            # CNN model definition
+   └── requirements.txt        # Python dependencies
+   ```
+   
+   You will need to create the following directories that are excluded from the repository:
+   
+   ```
+   PestHub/
+   ├── data/                   # Training data (excluded from repository)
+   │   ├── Ants/               # Images of ants for training
+   │   ├── Bees/               # Images of bees for training
+   │   ├── Beetles/            # Images of beetles for training
+   │   ├── Caterpillars/       # Images of caterpillars for training
+   │   ├── Earthworms/         # Images of earthworms for training
+   │   ├── Earwigs/            # Images of earwigs for training
+   │   ├── Grasshoppers/       # Images of grasshoppers for training
+   │   ├── Moths/              # Images of moths for training
+   │   ├── Slugs/              # Images of slugs for training
+   │   ├── Snails/             # Images of snails for training
+   │   ├── Wasps/              # Images of wasps for training
+   │   └── Weevils/            # Images of weevils for training
+   ├── static/                 # Static files (excluded from repository)
+   ```
+
+   Create the necessary directories:
    ```
    mkdir -p data static/images
    ```
@@ -48,7 +85,7 @@ Follow these steps to set up and run PEST-Hub on your local machine:
 
    Each directory should contain images of the corresponding pest type (.jpg or .png format).
 
-5. **Download or train the model**
+4. **Download or train the model**
 
    The model file `best_model.pth` is needed but not included in the repository due to its size.
    
@@ -64,7 +101,7 @@ Follow these steps to set up and run PEST-Hub on your local machine:
    - Download a pre-trained model 
    - Place the downloaded `best_model.pth` in the project root directory
 
-6. **Set up virtual environment and install dependencies**
+5. **Set up virtual environment and install dependencies**
    ```
    # Run the setup script (Unix/Mac)
    chmod +x setup.sh
@@ -76,19 +113,21 @@ Follow these steps to set up and run PEST-Hub on your local machine:
    pip install -r requirements.txt
    ```
 
-7. **Run the application**
+6. **Run the application**
    ```
+   source venv/bin/activate  # Activate virtual environment if not already active
    python app.py
    ```
 
-8. **Access the application**
-   Open your browser and navigate to `http://127.0.0.1:5000`
+7. **Access the application**
+   Open your browser and navigate to `http://127.0.0.1:8000`
 
 ### Troubleshooting
 
 - If you encounter a "Model not found" error, ensure `best_model.pth` is in the root directory
 - For image processing issues, check that you have Pillow installed correctly
 - If the static files aren't loading, make sure the `static` directory exists and has proper permissions
+- If port 5000 is in use (common on macOS with AirPlay), the app now runs on port 8000
 
 ## Application Pages
 

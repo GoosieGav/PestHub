@@ -14,7 +14,7 @@
         <div class="main-header">
             <div class="header-content">
                 <div class="pest-image-wrapper">
-                    <img src="{{ url_for('static', filename='images/pests/' + pest.image) }}" 
+                    <img src="{{ url_for('public_assets', filename='images/pests/' + pest.image) }}" 
                          alt="{{ pest.name }}"
                          class="pest-main-image">
                 </div>
@@ -71,9 +71,9 @@
                         </ul>
                     </div>
                     <div class="damage-image">
-                        <img src="{{ url_for('static', filename='images/damage/' + pest.name.lower() + '_damage.jpg') }}" 
+                        <img src="{{ url_for('public_assets', filename='images/damage/' + pest.name.lower() + '_damage.jpg') }}" 
                              alt="{{ pest.name }} damage example"
-                             onerror="this.src='{{ url_for('static', filename='images/damage/placeholder.jpg') }}'">
+                             onerror="this.src='{{ url_for('public_assets', filename='images/damage/placeholder.jpg') }}'">
                         <p class="image-caption">Typical damage caused by {{ pest.name }}</p>
                     </div>
                 </div>

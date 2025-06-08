@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify, url_for
+from flask import Flask, request, render_template, jsonify, url_for, send_from_directory
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
@@ -19,6 +19,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = CNN(num_classes=12).to(device)
 model.load_state_dict(torch.load('best_model.pth', map_location=device))
 model.eval()
+
+# Register public_assets directory
+@app.route('/assets/<path:filename>')
+def public_assets(filename):
+    return send_from_directory('public_assets', filename)
 
 # Class names
 class_names = ['Ants', 'Bees', 'Beetles', 'Caterpillars', 'Earthworms', 'Earwigs',
