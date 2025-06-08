@@ -787,4 +787,4 @@ def predict():
         return jsonify({'error': f'Error processing image: {str(e)}'})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=8000)
