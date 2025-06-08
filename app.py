@@ -25,6 +25,68 @@ model.eval()
 def public_assets(filename):
     return send_from_directory('public_assets', filename)
 
+# Add Jinja2 template filters
+@app.template_filter('get_category')
+def get_category(pest_name):
+    """Get the category for a pest based on its characteristics"""
+    category_mapping = {
+        'Ants': 'crawling',
+        'Beetles': 'crawling',
+        'Caterpillars': 'larval',
+        'Bees': 'flying',
+        'Earthworms': 'crawling',
+        'Earwigs': 'crawling',
+        'Grasshoppers': 'flying',
+        'Moths': 'flying',
+        'Slugs': 'soft-bodied',
+        'Snails': 'soft-bodied',
+        'Wasps': 'flying',
+        'Weevils': 'crawling'
+    }
+    return category_mapping.get(pest_name, 'crawling')
+
+@app.template_filter('get_category_display')
+def get_category_display(pest_name):
+    """Get the display name for a pest category"""
+    category = get_category(pest_name)
+    category_display = {
+        'crawling': 'Crawling Pest',
+        'flying': 'Flying Pest',
+        'larval': 'Larval Pest',
+        'soft-bodied': 'Soft-bodied Pest'
+    }
+    return category_display.get(category, 'Crawling Pest')
+
+@app.template_filter('get_threat_level')
+def get_threat_level(pest_name):
+    """Get the threat level for a pest"""
+    threat_mapping = {
+        'Ants': 'medium',
+        'Beetles': 'high',
+        'Caterpillars': 'high',
+        'Bees': 'low',
+        'Earthworms': 'low',
+        'Earwigs': 'medium',
+        'Grasshoppers': 'high',
+        'Moths': 'medium',
+        'Slugs': 'medium',
+        'Snails': 'medium',
+        'Wasps': 'medium',
+        'Weevils': 'high'
+    }
+    return threat_mapping.get(pest_name, 'medium')
+
+@app.template_filter('get_threat_text')
+def get_threat_text(pest_name):
+    """Get the threat level text for display"""
+    threat = get_threat_level(pest_name)
+    threat_text = {
+        'low': 'Low Threat',
+        'medium': 'Medium Threat',
+        'high': 'High Threat'
+    }
+    return threat_text.get(threat, 'Medium Threat')
+
 # Class names
 class_names = ['Ants', 'Bees', 'Beetles', 'Caterpillars', 'Earthworms', 'Earwigs',
                'Grasshoppers', 'Moths', 'Slugs', 'Snails', 'Wasps', 'Weevils']
