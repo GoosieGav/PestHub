@@ -14,11 +14,17 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_url_path='/static')
 
-# Initialize model
+# Initialize model (placeholder for development)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = CNN(num_classes=12).to(device)
-model.load_state_dict(torch.load('best_model.pth', map_location=device))
-model.eval()
+# Try to load the model, but don't fail if it doesn't exist
+try:
+    model.load_state_dict(torch.load('best_model.pth', map_location=device))
+    model.eval()
+    print("Model loaded successfully!")
+except FileNotFoundError:
+    print("Warning: best_model.pth not found. Using placeholder predictions for development.")
+    model = None
 
 # Register public_assets directory
 @app.route('/assets/<path:filename>')
@@ -718,6 +724,15 @@ pest_info = {
 
 def predict_image(image_bytes):
     try:
+        # If model is not loaded, return a placeholder prediction
+        if model is None:
+            # Return a random prediction for development
+            import random
+            class_name = random.choice(class_names)
+            confidence = random.uniform(0.7, 0.95)
+            logger.info(f"Using placeholder prediction: {class_name} with confidence {confidence:.2%}")
+            return class_name, confidence
+        
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
         tensor = transform(image).unsqueeze(0).to(device)
         
@@ -753,8 +768,14 @@ def about():
 
 @app.route('/pest/<pest_name>')
 def pest_details(pest_name):
-    if pest_name in pest_info:
-        return render_template('pest_info.html', pest=pest_info[pest_name])
+    # Handle case-insensitive matching
+    pest_name_normalized = pest_name.title()
+    
+    # Check if the pest exists in our database
+    if pest_name_normalized in pest_info:
+        return render_template('pest_info.html', pest=pest_info[pest_name_normalized])
+    
+    # If not found, return 404
     return render_template('404.html'), 404
 
 @app.route('/pests')
