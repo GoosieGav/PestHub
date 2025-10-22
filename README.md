@@ -1,6 +1,6 @@
 # PEST-Hub: AI-Powered Agricultural Pest Detection
 
-PEST-Hub is an advanced web application that uses deep learning to identify and provide management recommendations for agricultural pests. Built with PyTorch and Flask, it offers real-time pest detection and comprehensive pest management information.
+PEST-Hub is an advanced web application that uses Google's Gemini AI to identify and provide management recommendations for agricultural pests. Built with Flask and Gemini API, it offers real-time pest detection and comprehensive pest management information.
 
 ## Installation and Setup
 
@@ -28,80 +28,24 @@ Follow these steps to set up and run PEST-Hub on your local machine:
    ├── public_assets/          # Public static assets (included in repository)
    │   ├── images/
    │   │   ├── pests/          # Images of pests used in UI
-   │   │   ├── ui/             # UI elements and diagrams
-   │   │   └── damage/         # Pest damage images
+   │   │   └── ui/             # UI elements and diagrams
    ├── templates/              # HTML templates
+   ├── assets/css/             # CSS stylesheets
    ├── app.py                  # Main Flask application
-   ├── cnn_model.py            # CNN model definition
+   ├── .env                    # Environment variables (GEMINI_API_KEY)
    └── requirements.txt        # Python dependencies
    ```
+
+3. **Set up environment variables**
    
-   You will need to create the following directories that are excluded from the repository:
+   Create a `.env` file in the project root with your Gemini API key:
+   ```
+   GEMINI_API_KEY=your_api_key_here
+   ```
    
-   ```
-   PestHub/
-   ├── data/                   # Training data (excluded from repository)
-   │   ├── Ants/               # Images of ants for training
-   │   ├── Bees/               # Images of bees for training
-   │   ├── Beetles/            # Images of beetles for training
-   │   ├── Caterpillars/       # Images of caterpillars for training
-   │   ├── Earthworms/         # Images of earthworms for training
-   │   ├── Earwigs/            # Images of earwigs for training
-   │   ├── Grasshoppers/       # Images of grasshoppers for training
-   │   ├── Moths/              # Images of moths for training
-   │   ├── Slugs/              # Images of slugs for training
-   │   ├── Snails/             # Images of snails for training
-   │   ├── Wasps/              # Images of wasps for training
-   │   └── Weevils/            # Images of weevils for training
-   ├── static/                 # Static files (excluded from repository)
-   ```
+   You can obtain a Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
 
-   Create the necessary directories:
-   ```
-   mkdir -p data static/images
-   ```
-
-3. **Set up the data directory structure**
-   
-   The application requires a specific dataset structure for the CNN model:
-
-   The data can be downloaded [here](https://www.kaggle.com/datasets/vencerlanz09/agricultural-pests-image-dataset).
-   
-   ```
-   data/
-   ├── Ants/          # Images of ants
-   ├── Bees/          # Images of bees
-   ├── Beetles/       # Images of beetles
-   ├── Caterpillars/  # Images of caterpillars
-   ├── Earthworms/    # Images of earthworms
-   ├── Earwigs/       # Images of earwigs
-   ├── Grasshoppers/  # Images of grasshoppers
-   ├── Moths/         # Images of moths
-   ├── Slugs/         # Images of slugs
-   ├── Snails/        # Images of snails
-   ├── Wasps/         # Images of wasps
-   └── Weevils/       # Images of weevils
-   ```
-
-   Each directory should contain images of the corresponding pest type (.jpg or .png format).
-
-4. **Download or train the model**
-
-   The model file `best_model.pth` is needed but not included in the repository due to its size.
-   
-   Option A: **Train your own model**
-   - Populate the data directory with images as described above
-   - Run the training notebook:
-     ```
-     jupyter notebook cnn_model.ipynb
-     ```
-   - Execute all cells to train the model and generate `best_model.pth`
-   
-   Option B: **Download a pre-trained model**
-   - Download a pre-trained model 
-   - Place the downloaded `best_model.pth` in the project root directory
-
-5. **Set up virtual environment and install dependencies**
+4. **Set up virtual environment and install dependencies**
    ```
    # Run the setup script (Unix/Mac)
    chmod +x setup.sh
@@ -113,21 +57,44 @@ Follow these steps to set up and run PEST-Hub on your local machine:
    pip install -r requirements.txt
    ```
 
-6. **Run the application**
+5. **Run the application**
    ```
    source venv/bin/activate  # Activate virtual environment if not already active
    python app.py
    ```
 
-7. **Access the application**
-   Open your browser and navigate to `http://127.0.0.1:8000`
+6. **Access the application**
+   Open your browser and navigate to `http://127.0.0.1:4000`
 
 ### Troubleshooting
 
-- If you encounter a "Model not found" error, ensure `best_model.pth` is in the root directory
+- If you encounter API errors, ensure your `GEMINI_API_KEY` is set correctly in the `.env` file
 - For image processing issues, check that you have Pillow installed correctly
-- If the static files aren't loading, make sure the `static` directory exists and has proper permissions
-- If port 5000 is in use (common on macOS with AirPlay), the app now runs on port 8000
+- The app runs on port 4000 by default (avoiding macOS AirPlay conflict on port 5000)
+- Ensure you have an active internet connection for Gemini API calls
+
+## Key Features
+
+### 🚀 Dynamic Pest Detection
+PEST-Hub goes beyond a fixed database of pests. Using advanced Gemini AI capabilities:
+
+- **Identifies 12+ Default Pests**: Instantly recognizes common agricultural pests with pre-loaded information
+- **Discovers Unknown Pests**: When encountering pests outside the default set, Gemini AI automatically:
+  - Identifies the pest species and scientific name
+  - Generates comprehensive pest information on-the-fly
+  - Creates detailed treatment and prevention recommendations
+  - Provides damage symptoms and organic/chemical solutions
+  - Lists common species variants
+
+- **AI-Generated Information Pages**: New pests receive full information pages just like the default 12, complete with:
+  - Scientific classification
+  - Detailed descriptions
+  - Damage symptoms
+  - Treatment methods (organic and chemical)
+  - Prevention strategies
+  - Common species information
+
+This means the system can identify and provide actionable information for virtually any agricultural pest, making it truly adaptive to diverse farming needs.
 
 ## Application Pages
 
@@ -165,8 +132,10 @@ Follow these steps to set up and run PEST-Hub on your local machine:
    - Real-time image upload and processing
    - Dynamic result display with confidence scores
    - AJAX-powered predictions without page reload
-   - Integration with PyTorch model backend
+   - Integration with Gemini AI backend
    - Treatment recommendations based on detection
+   - Adaptive detection for both known and unknown pests
+   - Automatic information page generation for new pests
 
 3. **Pest Directory** (`/templates/pest_directory.html`)
    - Grid layout of common agricultural pests
@@ -192,25 +161,27 @@ Follow these steps to set up and run PEST-Hub on your local machine:
 
 2. **Backend Architecture**
    - Flask routing system
-   - PyTorch model integration
+   - Google Gemini AI integration
    - Image processing pipeline
    - RESTful API endpoints
    - Error handling middleware
 
-3. **Model Architecture**
-   - Convolutional Neural Network (CNN)
-   - Real-time classification
-   - Transfer learning implementation
+3. **AI Architecture**
+   - Google Gemini 2.0 Flash model
+   - Real-time multimodal classification
+   - Vision and language understanding
    - High-accuracy predictions
-   - Continuous learning capabilities
+   - Cloud-based inference
+   - Dynamic information generation for unknown pests
+   - Adaptive learning from new pest types
 
 ### Key Features Implementation
 
 - **Image Processing Pipeline**
   - Client-side image preview
   - Server-side validation
-  - PyTorch model inference
-  - Result caching system
+  - Gemini AI inference
+  - Real-time API communication
 
 - **Dynamic UI Components**
   - Responsive navigation
@@ -221,9 +192,9 @@ Follow these steps to set up and run PEST-Hub on your local machine:
 ## Technology Stack
 
 - **Backend**: Python, Flask
-- **ML Framework**: PyTorch
+- **AI**: Google Gemini 2.0 Flash
 - **Frontend**: HTML, CSS, JavaScript
-- **Model Architecture**: CNN
+- **Image Processing**: Pillow (PIL)
 
 ## Authors
 

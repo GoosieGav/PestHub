@@ -106,7 +106,13 @@
                  data-category="{{ pest.name|get_category|lower }}" 
                  data-threat="{{ pest.name|get_threat_level|lower }}"
                  data-scientific="{{ pest.scientific_name|lower }}"
-                 onclick="openPreviewModal('{{ pest.name }}', '{{ pest.scientific_name }}', '{{ pest.description }}', '{{ pest.image }}', {{ pest.symptoms|tojson }}, '{{ url_for('pest_details', pest_name=pest.name.lower().replace(' ', '_')) }}')">
+                 data-pest-name="{{ pest.name }}"
+                 data-pest-scientific="{{ pest.scientific_name }}"
+                 data-pest-description="{{ pest.description }}"
+                 data-pest-image="{{ pest.image }}"
+                 data-pest-symptoms='{{ pest.symptoms|tojson }}'
+                 data-pest-url="{{ url_for('pest_details', pest_name=pest.name.lower().replace(' ', '_')) }}"
+                 onclick="openPreviewModalFromData(this)">
                 
                 <div class="pest-image-section">
                     <img src="{{ url_for('public_assets', filename='images/pests/' + pest.image) }}" 
@@ -144,7 +150,7 @@
                     </div>
                     
                     <div class="pest-actions">
-                        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); openPreviewModal('{{ pest.name }}', '{{ pest.scientific_name }}', '{{ pest.description }}', '{{ pest.image }}', {{ pest.symptoms|tojson }}, '{{ url_for('pest_details', pest_name=pest.name.lower().replace(' ', '_')) }}')">
+                        <button class="btn btn-outline btn-sm quick-view-btn" onclick="event.stopPropagation();">
                             <i class="fas fa-eye"></i> Quick View
                         </button>
                         <a href="{{ url_for('pest_details', pest_name=pest.name.lower().replace(' ', '_')) }}" 
@@ -182,8 +188,18 @@
         </div>
         <div class="modal-body">
             <div class="preview-content">
-                <div class="preview-image">
-                    <img id="modal-image" alt="Pest image">
+                <div class="preview-image-section">
+                    <img id="modal-image" alt="Pest image" class="preview-main-image">
+                    <div class="preview-image-details">
+                        <div class="preview-detail-item">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span id="modal-threat-level">Threat Level</span>
+                        </div>
+                        <div class="preview-detail-item">
+                            <i class="fas fa-tag"></i>
+                            <span id="modal-category">Category</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="preview-info">
                     <h4 id="modal-pest-name">Pest Name</h4>
@@ -198,7 +214,7 @@
                     </div>
                     
                     <div class="preview-actions">
-                        <a href="#" id="modal-learn-more" class="btn btn-primary">
+                        <a href="#" id="modal-learn-more" class="btn btn-primary" target="_self">
                             <i class="fas fa-book"></i> Full Information
                         </a>
                         <button class="btn btn-outline" onclick="closePreviewModal()">
@@ -355,11 +371,37 @@ class PestDirectory {
     }
 
     closePreviewModal() {
-        document.getElementById('preview-modal').style.display = 'none';
+        const modal = document.getElementById('preview-modal');
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = ''; // Re-enable background scrolling
     }
 }
 
-function openPreviewModal(name, scientificName, description, image, symptoms, learnMoreUrl) {
+function openPreviewModalFromData(card) {
+    const name = card.dataset.pestName;
+    const scientificName = card.dataset.pestScientific;
+    const description = card.dataset.pestDescription;
+    const image = card.dataset.pestImage;
+    const symptomsJson = card.dataset.pestSymptoms;
+    const learnMoreUrl = card.dataset.pestUrl;
+    const category = card.dataset.category;
+    const threat = card.dataset.threat;
+    
+    let symptoms = [];
+    try {
+        symptoms = JSON.parse(symptomsJson);
+        console.log('Parsed symptoms for', name, ':', symptoms);
+    } catch (e) {
+        console.error('Error parsing symptoms for', name, ':', e);
+        console.error('Symptoms JSON:', symptomsJson);
+        symptoms = [];
+    }
+    
+    openPreviewModal(name, scientificName, description, image, symptoms, learnMoreUrl, category, threat);
+}
+
+function openPreviewModal(name, scientificName, description, image, symptoms, learnMoreUrl, category, threat) {
     const modal = document.getElementById('preview-modal');
     const modalTitle = document.getElementById('modal-title');
     const modalImage = document.getElementById('modal-image');
@@ -368,28 +410,68 @@ function openPreviewModal(name, scientificName, description, image, symptoms, le
     const modalDescription = document.getElementById('modal-description');
     const modalSymptoms = document.getElementById('modal-symptoms');
     const modalLearnMore = document.getElementById('modal-learn-more');
+    const modalThreatLevel = document.getElementById('modal-threat-level');
+    const modalCategory = document.getElementById('modal-category');
 
-    modalTitle.textContent = `${name} - Quick Preview`;
-    modalImage.src = `/public_assets/images/pests/${image}`;
+    modalTitle.textContent = name;
+    modalImage.src = `/assets/images/pests/${image}`;
     modalImage.alt = name;
     modalPestName.textContent = name;
     modalScientificName.textContent = scientificName;
     modalDescription.textContent = description;
+    
+    // Set the learn more link properly
     modalLearnMore.href = learnMoreUrl;
+    modalLearnMore.onclick = function(e) {
+        e.stopPropagation();
+        window.location.href = learnMoreUrl;
+        return false;
+    };
+    
+    // Set threat level with proper styling
+    const threatText = threat ? threat.charAt(0).toUpperCase() + threat.slice(1) + ' Risk' : 'Medium Risk';
+    modalThreatLevel.textContent = threatText;
+    modalThreatLevel.className = `threat-badge ${threat || 'medium'}`;
+    
+    // Set category
+    const categoryMap = {
+        'flying': 'Flying Pest',
+        'crawling': 'Crawling Pest',
+        'soft-bodied': 'Soft-bodied Pest',
+        'larval': 'Larval Pest'
+    };
+    modalCategory.textContent = categoryMap[category] || 'Agricultural Pest';
 
     // Clear existing symptoms
     modalSymptoms.innerHTML = '';
     
-    // Add symptoms
-    if (Array.isArray(symptoms)) {
-        symptoms.forEach(symptom => {
+    // Add symptoms (intelligently choose 2 or 3 based on length)
+    if (Array.isArray(symptoms) && symptoms.length > 0) {
+        // Check the length of the first 3 symptoms
+        const first3Symptoms = symptoms.slice(0, 3);
+        const avgLength = first3Symptoms.reduce((sum, symptom) => sum + symptom.length, 0) / first3Symptoms.length;
+        
+        console.log(name, 'avg symptom length:', avgLength);
+        
+        // If symptoms are long (avg > 70 chars), show 2; otherwise show 3
+        const numberOfSymptoms = avgLength > 70 ? 2 : 3;
+        
+        const symptomsToShow = symptoms.slice(0, numberOfSymptoms);
+        symptomsToShow.forEach(symptom => {
             const li = document.createElement('li');
             li.textContent = symptom;
             modalSymptoms.appendChild(li);
         });
+    } else {
+        // Fallback if no symptoms available
+        const li = document.createElement('li');
+        li.textContent = 'Visible pest presence and crop damage';
+        modalSymptoms.appendChild(li);
     }
 
+    modal.classList.add('active');
     modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
 }
 
 function resetAllFilters() {
@@ -401,12 +483,43 @@ function resetAllFilters() {
 function closePreviewModal() {
     if (window.pestDirectory) {
         window.pestDirectory.closePreviewModal();
+    } else {
+        const modal = document.getElementById('preview-modal');
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
     }
 }
 
 // Store instance globally
 document.addEventListener('DOMContentLoaded', () => {
     window.pestDirectory = new PestDirectory();
+    
+    // Close modal when clicking outside of it
+    const modal = document.getElementById('preview-modal');
+    modal.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closePreviewModal();
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closePreviewModal();
+        }
+    });
+    
+    // Add click handlers to Quick View buttons
+    document.querySelectorAll('.quick-view-btn').forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.stopPropagation();
+            const card = this.closest('.pest-card');
+            if (card) {
+                openPreviewModalFromData(card);
+            }
+        });
+    });
 });
 </script>
 {% endblock %}

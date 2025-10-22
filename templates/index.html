@@ -291,8 +291,22 @@ function showResults(data) {
     };
     
     document.getElementById('pest-scientific').textContent = scientificNames[data.class_name] || '';
-    document.getElementById('pest-status').textContent = data.is_pest ? 'PEST DETECTED' : 'NOT A PEST';
-    document.getElementById('learn-more-btn').href = data.info_url;
+    
+    // Update status with special handling for new pests
+    let statusText = data.is_pest ? 'PEST DETECTED' : 'NOT A PEST';
+    if (data.is_new && data.is_pest) {
+        statusText = '🤖 NEW PEST DETECTED - AI Generated Info';
+    }
+    document.getElementById('pest-status').textContent = statusText;
+    
+    // Set up Learn More button with explicit navigation
+    const learnMoreBtn = document.getElementById('learn-more-btn');
+    learnMoreBtn.href = data.info_url;
+    learnMoreBtn.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.location.href = data.info_url;
+    };
     
     // Show results section
     resultsSection.style.display = 'block';

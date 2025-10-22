@@ -10,14 +10,14 @@
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="hero-content">
-        <div class="hero-text">
+        <div class="hero-text scroll-animate-left">
             <h1 class="hero-title">
                 Protect Your Crops with 
                 <span class="gradient-text">AI-Powered</span> 
                 Pest Detection
             </h1>
             <div class="hero-description">
-                <p>Instantly identify agricultural pests with our advanced machine learning technology. 
+                <p>Instantly identify agricultural pests with our advanced AI technology. 
                 Get precise identification, treatment recommendations, and preventive measures to 
                 safeguard your harvest and maximize crop yield.</p>
             </div>
@@ -46,7 +46,7 @@
                 </div>
             </div>
         </div>
-        <div class="hero-visual">
+        <div class="hero-visual scroll-animate-right">
             <div class="hero-image-container">
                 <img src="{{ url_for('public_assets', filename='images/ui/hero-pest-detection.png') }}" 
                      alt="AI Pest Detection Technology"
@@ -58,13 +58,13 @@
 
 <!-- Features Section -->
 <section class="features-section">
-    <div class="section-header">
+    <div class="section-header scroll-animate">
         <h2>Why Choose PEST-Hub?</h2>
         <p>Advanced technology meets agricultural expertise for comprehensive pest management</p>
     </div>
     
     <div class="features-grid">
-        <div class="feature-card">
+        <div class="feature-card scroll-animate">
             <div class="feature-icon">
                 <i class="fas fa-microscope"></i>
             </div>
@@ -79,7 +79,7 @@
             </div>
         </div>
         
-        <div class="feature-card">
+        <div class="feature-card scroll-animate">
             <div class="feature-icon">
                 <i class="fas fa-shield-alt"></i>
             </div>
@@ -94,7 +94,7 @@
             </div>
         </div>
         
-        <div class="feature-card">
+        <div class="feature-card scroll-animate">
             <div class="feature-icon">
                 <i class="fas fa-leaf"></i>
             </div>
@@ -109,7 +109,7 @@
             </div>
         </div>
         
-        <div class="feature-card">
+        <div class="feature-card scroll-animate">
             <div class="feature-icon">
                 <i class="fas fa-clock"></i>
             </div>
@@ -124,7 +124,7 @@
             </div>
         </div>
         
-        <div class="feature-card">
+        <div class="feature-card scroll-animate">
             <div class="feature-icon">
                 <i class="fas fa-graduation-cap"></i>
             </div>
@@ -139,7 +139,7 @@
             </div>
         </div>
         
-        <div class="feature-card">
+        <div class="feature-card scroll-animate">
             <div class="feature-icon">
                 <i class="fas fa-mobile-alt"></i>
             </div>
@@ -158,13 +158,13 @@
 
 <!-- How It Works Section -->
 <section class="how-it-works-section">
-    <div class="section-header">
+    <div class="section-header scroll-animate">
         <h2>How It Works</h2>
         <p>Three simple steps to protect your crops from pest damage</p>
     </div>
     
     <div class="steps-container">
-        <div class="step-item">
+        <div class="step-item scroll-animate-scale">
             <div class="step-number">1</div>
             <div class="step-content">
                 <div class="step-icon">
@@ -175,11 +175,11 @@
             </div>
         </div>
         
-        <div class="step-connector">
+        <div class="step-connector scroll-animate">
             <i class="fas fa-arrow-right"></i>
         </div>
         
-        <div class="step-item">
+        <div class="step-item scroll-animate-scale">
             <div class="step-number">2</div>
             <div class="step-content">
                 <div class="step-icon">
@@ -190,11 +190,11 @@
             </div>
         </div>
         
-        <div class="step-connector">
+        <div class="step-connector scroll-animate">
             <i class="fas fa-arrow-right"></i>
         </div>
         
-        <div class="step-item">
+        <div class="step-item scroll-animate-scale">
             <div class="step-number">3</div>
             <div class="step-content">
                 <div class="step-icon">
@@ -209,48 +209,48 @@
 
 <!-- Pest Gallery Preview -->
 <section class="pest-preview-section">
-    <div class="section-header">
+    <div class="section-header scroll-animate">
         <h2>Pest Database</h2>
         <p>Comprehensive information on agricultural pests commonly found in crops</p>
     </div>
     
     <div class="pest-gallery">
-        <div class="pest-preview-card">
+        <div class="pest-preview-card scroll-animate">
             <img src="{{ url_for('public_assets', filename='images/pests/ants.jpg') }}" alt="Ants">
             <div class="pest-info">
                 <h4>Ants</h4>
                 <span class="pest-type">Crawling Pest</span>
             </div>
         </div>
-        <div class="pest-preview-card">
+        <div class="pest-preview-card scroll-animate">
             <img src="{{ url_for('public_assets', filename='images/pests/beetles.jpg') }}" alt="Beetles">
             <div class="pest-info">
                 <h4>Beetles</h4>
                 <span class="pest-type">Crawling Pest</span>
             </div>
         </div>
-        <div class="pest-preview-card">
+        <div class="pest-preview-card scroll-animate">
             <img src="{{ url_for('public_assets', filename='images/pests/caterpillars.jpg') }}" alt="Caterpillars">
             <div class="pest-info">
                 <h4>Caterpillars</h4>
                 <span class="pest-type">Larval Pest</span>
             </div>
         </div>
-        <div class="pest-preview-card">
+        <div class="pest-preview-card scroll-animate">
             <img src="{{ url_for('public_assets', filename='images/pests/grasshoppers.jpg') }}" alt="Grasshoppers">
             <div class="pest-info">
                 <h4>Grasshoppers</h4>
                 <span class="pest-type">Flying Pest</span>
             </div>
         </div>
-        <div class="pest-preview-card">
+        <div class="pest-preview-card scroll-animate">
             <img src="{{ url_for('public_assets', filename='images/pests/moths.jpg') }}" alt="Moths">
             <div class="pest-info">
                 <h4>Moths</h4>
                 <span class="pest-type">Flying Pest</span>
             </div>
         </div>
-        <div class="pest-preview-card">
+        <div class="pest-preview-card scroll-animate">
             <img src="{{ url_for('public_assets', filename='images/pests/slugs.jpg') }}" alt="Slugs">
             <div class="pest-info">
                 <h4>Slugs</h4>
@@ -259,7 +259,7 @@
         </div>
     </div>
     
-    <div class="gallery-action">
+    <div class="gallery-action scroll-animate">
         <a href="/pests" class="btn btn-secondary">
             <i class="fas fa-eye"></i>
             View Complete Directory
@@ -269,7 +269,7 @@
 
 <!-- CTA Section -->
 <section class="cta-section">
-    <div class="cta-content">
+    <div class="cta-content scroll-animate-scale">
         <div class="cta-text">
             <h2>Ready to Protect Your Crops?</h2>
             <p>Join thousands of farmers using AI technology for smarter pest management</p>
@@ -282,4 +282,45 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Scroll Animation with Intersection Observer
+document.addEventListener('DOMContentLoaded', function() {
+    // Create observer for scroll animations
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-in');
+                // Optional: Stop observing after animation to improve performance
+                // observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // Observe all elements with scroll animation classes
+    const animatedElements = document.querySelectorAll(
+        '.scroll-animate, .scroll-animate-left, .scroll-animate-right, .scroll-animate-scale'
+    );
+    
+    animatedElements.forEach(element => {
+        observer.observe(element);
+    });
+
+    // Animate hero section immediately on page load
+    const heroElements = document.querySelectorAll('.hero-section .scroll-animate-left, .hero-section .scroll-animate-right');
+    heroElements.forEach(element => {
+        setTimeout(() => {
+            element.classList.add('animate-in');
+        }, 200);
+    });
+});
+</script>
 {% endblock %}

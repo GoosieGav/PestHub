@@ -59,6 +59,30 @@
     object-fit: cover;
 }
 
+.ai-pest-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+}
+
+.ai-pest-placeholder i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.ai-pest-placeholder p {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+    opacity: 0.9;
+}
+
 .pest-title h1 {
     color: var(--primary-color);
     margin: 0;
@@ -191,7 +215,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
-    align-items: start;
+    align-items: center;
 }
 
 .symptoms-list ul {
@@ -211,39 +235,70 @@
 }
 
 .symptoms-list li:before {
-    content: '⚠️';
-    position: absolute;
-    left: -0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--bg-card);
-    padding: 0.25rem;
-    border-radius: 50%;
+    content: '';
+    display: none;
 }
 
 .damage-image {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .damage-image img {
     width: 100%;
-    max-width: 300px;
-    height: auto;
+    max-width: 350px;
+    height: 280px;
+    object-fit: cover;
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-lg);
     transition: transform var(--transition-normal);
+    border: 2px solid var(--gray-200);
 }
 
 .damage-image img:hover {
-    transform: scale(1.05);
+    transform: scale(1.03);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary-color);
+}
+
+.ai-generated-notice {
+    width: 100%;
+    max-width: 350px;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bg-card-light), var(--bg-card));
+    border: 2px dashed var(--primary-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+}
+
+.ai-generated-notice i {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.ai-generated-notice p {
+    color: var(--text-body);
+    font-weight: 600;
+    line-height: 1.6;
+    margin: 0;
 }
 
 .image-caption {
     font-size: 0.875rem;
     color: var(--text-muted);
     font-style: italic;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
     font-weight: 500;
+    text-align: center;
 }
 
 /* ===== Treatment Cards ===== */
@@ -264,11 +319,13 @@
 }
 
 .info-card.treatment li:before {
-    content: '🌱';
+    content: '';
+    display: none;
 }
 
 .info-card.treatment:nth-of-type(2) li:before {
-    content: '🧪';
+    content: '';
+    display: none;
 }
 
 /* ===== Prevention Card ===== */
@@ -281,7 +338,8 @@
 }
 
 .info-card.prevention li:before {
-    content: '🛡️';
+    content: '';
+    display: none;
 }
 
 /* ===== Responsive Design ===== */

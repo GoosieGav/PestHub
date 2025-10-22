@@ -1,30 +1,31 @@
-from flask import Flask, request, render_template, jsonify, url_for, send_from_directory
-import torch
-import torchvision.transforms as transforms
+from flask import Flask, request, render_template, jsonify, url_for, send_from_directory, session
 from PIL import Image
 import io
-from cnn_model import CNN
-import random
 import logging
 import os
+import google.generativeai as genai
+from dotenv import load_dotenv
+import secrets
+
+# Load environment variables
+load_dotenv()
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_url_path='/static')
+app.secret_key = secrets.token_hex(32)  # Generate a secure secret key for sessions
 
-# Initialize model (placeholder for development)
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = CNN(num_classes=12).to(device)
-# Try to load the model, but don't fail if it doesn't exist
-try:
-    model.load_state_dict(torch.load('best_model.pth', map_location=device))
-    model.eval()
-    print("Model loaded successfully!")
-except FileNotFoundError:
-    print("Warning: best_model.pth not found. Using placeholder predictions for development.")
-    model = None
+# Configure Gemini API
+api_key = os.getenv('GEMINI_API_KEY')
+if not api_key:
+    logger.error("GEMINI_API_KEY not found in environment variables")
+    raise ValueError("GEMINI_API_KEY not found in environment variables")
+
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel('gemini-2.0-flash-exp')
+logger.info("Gemini API configured successfully")
 
 # Register public_assets directory
 @app.route('/assets/<path:filename>')
@@ -100,14 +101,6 @@ def get_threat_text(pest_name):
 # Class names
 class_names = ['Ants', 'Bees', 'Beetles', 'Caterpillars', 'Earthworms', 'Earwigs',
                'Grasshoppers', 'Moths', 'Slugs', 'Snails', 'Wasps', 'Weevils']
-
-# Transform for input images
-transform = transforms.Compose([
-    transforms.Resize((300, 300)),  # Match the original training size
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225])
-])
 
 # Pest information database
 pest_info = {
@@ -724,30 +717,172 @@ pest_info = {
 
 def predict_image(image_bytes):
     try:
-        # If model is not loaded, return a placeholder prediction
-        if model is None:
-            # Return a random prediction for development
-            import random
-            class_name = random.choice(class_names)
-            confidence = random.uniform(0.7, 0.95)
-            logger.info(f"Using placeholder prediction: {class_name} with confidence {confidence:.2%}")
-            return class_name, confidence
-        
+        # Load image using PIL
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
-        tensor = transform(image).unsqueeze(0).to(device)
         
-        # Add logging to debug tensor shape
-        logger.info(f"Input tensor shape: {tensor.shape}")
+        # Create prompt for Gemini - identify any pest
+        prompt = """You are an expert agricultural pest identification AI. Analyze this image and identify the pest.
+
+First, determine if this is one of these common agricultural pests:
+- Ants
+- Bees
+- Beetles
+- Caterpillars
+- Earthworms
+- Earwigs
+- Grasshoppers
+- Moths
+- Slugs
+- Snails
+- Wasps
+- Weevils
+
+If it matches one of these, respond with:
+MATCH: YES
+PEST: [exact pest name from list above]
+CONFIDENCE: [0.00-1.00]
+
+If it's a different pest not in the list above, respond with:
+MATCH: NO
+PEST: [specific pest name]
+SCIENTIFIC_NAME: [scientific name]
+CONFIDENCE: [0.00-1.00]
+DESCRIPTION: [2-3 sentence description of the pest]
+
+Be precise and accurate."""
+
+        # Call Gemini API
+        logger.info("Sending image to Gemini API for analysis")
+        response = model.generate_content([prompt, image])
+        response_text = response.text.strip()
+        logger.info(f"Gemini API response: {response_text}")
         
-        with torch.no_grad():
-            outputs = model(tensor)
-            _, predicted = torch.max(outputs, 1)
-            confidence = torch.nn.functional.softmax(outputs, dim=1)[0]
+        # Parse response
+        is_match = False
+        pest_name = None
+        scientific_name = None
+        confidence = 0.5
+        description = None
         
-        return class_names[predicted[0]], float(confidence[predicted[0]])
+        for line in response_text.split('\n'):
+            line = line.strip()
+            if line.startswith('MATCH:'):
+                is_match = 'YES' in line.upper()
+            elif line.startswith('PEST:'):
+                pest_name = line.replace('PEST:', '').strip()
+            elif line.startswith('SCIENTIFIC_NAME:'):
+                scientific_name = line.replace('SCIENTIFIC_NAME:', '').strip()
+            elif line.startswith('CONFIDENCE:'):
+                try:
+                    confidence = float(line.replace('CONFIDENCE:', '').strip())
+                except ValueError:
+                    confidence = 0.75
+            elif line.startswith('DESCRIPTION:'):
+                description = line.replace('DESCRIPTION:', '').strip()
+        
+        # If it's a known pest, validate it
+        if is_match:
+            if pest_name not in class_names:
+                # Try to find closest match
+                for class_name in class_names:
+                    if class_name.lower() in pest_name.lower() or pest_name.lower() in class_name.lower():
+                        pest_name = class_name
+                        break
+                else:
+                    pest_name = 'Beetles'
+                    confidence = 0.5
+        
+        logger.info(f"Final prediction: {pest_name} (Known: {is_match}) with confidence {confidence:.2%}")
+        return pest_name, confidence, is_match, scientific_name, description
+        
     except Exception as e:
-        logger.error(f"Error in predict_image: {str(e)}")
+        logger.error(f"Error in predict_image: {str(e)}", exc_info=True)
         raise
+
+def generate_pest_info(pest_name, scientific_name, image_bytes):
+    """Generate comprehensive pest information using Gemini AI"""
+    try:
+        image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
+        
+        prompt = f"""You are an agricultural pest expert. Provide comprehensive information about {pest_name} ({scientific_name if scientific_name else 'provide scientific name'}).
+
+Respond in this EXACT format:
+
+SCIENTIFIC_NAME: [scientific name]
+DESCRIPTION: [2-3 sentences about the pest]
+SYMPTOMS: [5 damage symptoms, separated by ||| ]
+ORGANIC_TREATMENT: [5 organic treatment methods, separated by ||| ]
+CHEMICAL_TREATMENT: [5 chemical treatment methods, separated by ||| ]
+PREVENTION: [5 prevention strategies, separated by ||| ]
+SPECIES_1_NAME: [common species name]
+SPECIES_1_DESC: [description]
+SPECIES_2_NAME: [common species name]
+SPECIES_2_DESC: [description]
+SPECIES_3_NAME: [common species name]
+SPECIES_3_DESC: [description]
+
+Be specific and professional. Use ||| as separator for list items."""
+
+        response = model.generate_content([prompt, image])
+        response_text = response.text.strip()
+        logger.info(f"Generated pest info for {pest_name}")
+        
+        # Parse the response
+        pest_data = {
+            'name': pest_name,
+            'scientific_name': scientific_name or pest_name,
+            'image': 'placeholder.jpg',
+            'description': '',
+            'symptoms': [],
+            'organic_treatment': [],
+            'chemical_treatment': [],
+            'prevention': [],
+            'common_species': []
+        }
+        
+        current_key = None
+        for line in response_text.split('\n'):
+            line = line.strip()
+            if line.startswith('SCIENTIFIC_NAME:'):
+                pest_data['scientific_name'] = line.replace('SCIENTIFIC_NAME:', '').strip()
+            elif line.startswith('DESCRIPTION:'):
+                pest_data['description'] = line.replace('DESCRIPTION:', '').strip()
+            elif line.startswith('SYMPTOMS:'):
+                symptoms_text = line.replace('SYMPTOMS:', '').strip()
+                pest_data['symptoms'] = [s.strip() for s in symptoms_text.split('|||') if s.strip()]
+            elif line.startswith('ORGANIC_TREATMENT:'):
+                treatment_text = line.replace('ORGANIC_TREATMENT:', '').strip()
+                pest_data['organic_treatment'] = [t.strip() for t in treatment_text.split('|||') if t.strip()]
+            elif line.startswith('CHEMICAL_TREATMENT:'):
+                treatment_text = line.replace('CHEMICAL_TREATMENT:', '').strip()
+                pest_data['chemical_treatment'] = [t.strip() for t in treatment_text.split('|||') if t.strip()]
+            elif line.startswith('PREVENTION:'):
+                prevention_text = line.replace('PREVENTION:', '').strip()
+                pest_data['prevention'] = [p.strip() for p in prevention_text.split('|||') if p.strip()]
+            elif line.startswith('SPECIES_1_NAME:'):
+                species_name = line.replace('SPECIES_1_NAME:', '').strip()
+                pest_data['_species_1_name'] = species_name
+            elif line.startswith('SPECIES_1_DESC:'):
+                species_desc = line.replace('SPECIES_1_DESC:', '').strip()
+                pest_data['common_species'].append({'name': pest_data.get('_species_1_name', 'Common Species 1'), 'description': species_desc})
+            elif line.startswith('SPECIES_2_NAME:'):
+                species_name = line.replace('SPECIES_2_NAME:', '').strip()
+                pest_data['_species_2_name'] = species_name
+            elif line.startswith('SPECIES_2_DESC:'):
+                species_desc = line.replace('SPECIES_2_DESC:', '').strip()
+                pest_data['common_species'].append({'name': pest_data.get('_species_2_name', 'Common Species 2'), 'description': species_desc})
+            elif line.startswith('SPECIES_3_NAME:'):
+                species_name = line.replace('SPECIES_3_NAME:', '').strip()
+                pest_data['_species_3_name'] = species_name
+            elif line.startswith('SPECIES_3_DESC:'):
+                species_desc = line.replace('SPECIES_3_DESC:', '').strip()
+                pest_data['common_species'].append({'name': pest_data.get('_species_3_name', 'Common Species 3'), 'description': species_desc})
+        
+        return pest_data
+        
+    except Exception as e:
+        logger.error(f"Error generating pest info: {str(e)}", exc_info=True)
+        return None
 
 def is_pest(class_name, confidence):
     # Placeholder function - in reality, this would use the actual model's confidence threshold
@@ -769,11 +904,16 @@ def about():
 @app.route('/pest/<pest_name>')
 def pest_details(pest_name):
     # Handle case-insensitive matching
-    pest_name_normalized = pest_name.title()
+    pest_name_normalized = pest_name.replace('_', ' ').title()
     
-    # Check if the pest exists in our database
+    # Check if the pest exists in our static database
     if pest_name_normalized in pest_info:
         return render_template('pest_info.html', pest=pest_info[pest_name_normalized])
+    
+    # Check if it's a dynamically generated pest
+    if 'dynamic_pests' in session and pest_name in session['dynamic_pests']:
+        pest_data = session['dynamic_pests'][pest_name]
+        return render_template('pest_info.html', pest=pest_data)
     
     # If not found, return 404
     return render_template('404.html'), 404
@@ -793,22 +933,48 @@ def predict():
     
     try:
         img_bytes = file.read()
-        # Use real model prediction instead of placeholder
-        class_name, confidence = predict_image(img_bytes)
-        is_pest_result = is_pest(class_name, confidence)
+        # Use Gemini for prediction
+        pest_name, confidence, is_known_pest, scientific_name, description = predict_image(img_bytes)
+        is_pest_result = is_pest(pest_name, confidence)
         
-        logger.info(f'Prediction complete: {class_name} with confidence {confidence:.2%}')
+        # If it's an unknown pest, generate comprehensive information
+        if not is_known_pest and is_pest_result:
+            logger.info(f'Unknown pest detected: {pest_name}, generating information...')
+            pest_data = generate_pest_info(pest_name, scientific_name, img_bytes)
+            
+            if pest_data:
+                # Store in session
+                if 'dynamic_pests' not in session:
+                    session['dynamic_pests'] = {}
+                
+                pest_key = pest_name.lower().replace(' ', '_')
+                session['dynamic_pests'][pest_key] = pest_data
+                session.modified = True
+                
+                info_url = f'/pest/{pest_key}'
+                message = f'NEW PEST DETECTED: {pest_name}'
+            else:
+                info_url = '/pests'
+                message = 'PEST DETECTED (Info generation failed)'
+        else:
+            # Known pest from our database
+            pest_key = pest_name.lower().replace(' ', '_')
+            info_url = f'/pest/{pest_key}'
+            message = 'PEST DETECTED!' if is_pest_result else 'NOT A PEST'
+        
+        logger.info(f'Prediction complete: {pest_name} (Known: {is_known_pest}) with confidence {confidence:.2%}')
         
         return jsonify({
-            'class_name': class_name,
+            'class_name': pest_name,
             'confidence': f'{confidence:.2%}',
             'is_pest': is_pest_result,
-            'message': 'PEST DETECTED!' if is_pest_result else 'NOT A PEST',
-            'info_url': f'/pest/{class_name}'
+            'is_new': not is_known_pest,
+            'message': message,
+            'info_url': info_url
         })
         
     except Exception as e:
-        logger.error(f'Error during prediction: {str(e)}')
+        logger.error(f'Error during prediction: {str(e)}', exc_info=True)
         return jsonify({'error': f'Error processing image: {str(e)}'})
 
 if __name__ == '__main__':
