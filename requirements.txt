@@ -1,10 +1,4 @@
 flask
-torch
-torchvision
 pillow
-matplotlib
-numpy
-scikit-learn
-seaborn
-graphviz
+google-generativeai
 python-dotenv

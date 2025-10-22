@@ -18,9 +18,17 @@
         <div class="main-header">
             <div class="header-content">
                 <div class="pest-image-wrapper">
-                    <img src="{{ url_for('public_assets', filename='images/pests/' + pest.image) }}" 
-                         alt="{{ pest.name }}"
-                         class="pest-main-image">
+                    {% set known_pests = ['ants.jpg', 'bees.jpg', 'beetles.jpg', 'caterpillars.jpg', 'earthworms.jpg', 'earwigs.jpg', 'grasshoppers.jpg', 'moths.jpg', 'slugs.jpg', 'snails.jpg', 'wasps.jpg', 'weevils.jpg'] %}
+                    {% if pest.image in known_pests %}
+                        <img src="{{ url_for('public_assets', filename='images/pests/' + pest.image) }}" 
+                             alt="{{ pest.name }}"
+                             class="pest-main-image">
+                    {% else %}
+                        <div class="ai-pest-placeholder">
+                            <i class="fas fa-bug"></i>
+                            <p>AI Detected</p>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="pest-title">
                     <h1>{{ pest.name }}</h1>
@@ -75,9 +83,30 @@
                         </ul>
                     </div>
                     <div class="damage-image">
-                        <img src="{{ url_for('public_assets', filename='images/damage/' + pest.name.lower() + '_damage.jpg') }}" 
-                             alt="{{ pest.name }} damage example"
-                             onerror="this.src='{{ url_for('public_assets', filename='images/damage/placeholder.jpg') }}'">
+                        {% set damage_image_map = {
+                            'Ants': 'Ants.jpg',
+                            'Bees': 'Bees.jpg',
+                            'Beetles': 'Beetle.jpg',
+                            'Caterpillars': 'Caterpillar.jpg',
+                            'Earthworms': 'Earthworms.jpg',
+                            'Earwigs': 'Earwig.jpg',
+                            'Grasshoppers': 'Grasshopper.jpg',
+                            'Moths': 'Moths.jpg',
+                            'Slugs': 'Slugs.jpg',
+                            'Snails': 'Snails.jpg',
+                            'Wasps': 'Wasps.jpg',
+                            'Weevils': 'Weevils.jpg'
+                        } %}
+                        {% if pest.name in damage_image_map %}
+                            <img src="{{ url_for('public_assets', filename='images/damage/' + damage_image_map[pest.name]) }}" 
+                                 alt="{{ pest.name }} damage example"
+                                 class="damage-photo">
+                        {% else %}
+                            <div class="ai-generated-notice">
+                                <i class="fas fa-robot"></i>
+                                <p>This pest was identified using AI. Damage images are not yet available.</p>
+                            </div>
+                        {% endif %}
                         <p class="image-caption">Typical damage caused by {{ pest.name }}</p>
                     </div>
                 </div>

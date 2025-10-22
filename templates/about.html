@@ -7,49 +7,97 @@
     <h1>About Our Technology</h1>
     <div class="about-content">
         <div class="card">
-            <h2>AI-Powered Detection System</h2>
+            <h2>Advanced AI-Powered Detection</h2>
             <p class="about-intro">
-                Our system utilizes state-of-the-art Convolutional Neural Networks (CNN) to provide accurate pest identification
-                in agricultural environments.
+                PEST-Hub leverages a cutting-edge multimodal AI model to provide intelligent pest identification in 
+                agricultural environments. Unlike traditional machine learning approaches, our system combines advanced 
+                vision understanding with natural language processing to identify pests and generate comprehensive 
+                information dynamically.
             </p>
-            <div class="cnn-diagram">
-                <img src="{{ url_for('public_assets', filename='images/ui/cnn-diagram.png') }}" 
-                     alt="CNN Architecture Diagram"
-                     class="about-diagram">
-                <p class="diagram-caption">Our CNN Architecture for Pest Detection</p>
+            <div class="tech-highlights">
+                <div class="highlight-item">
+                    <i class="fas fa-eye"></i>
+                    <h3>Visual Analysis</h3>
+                    <p>Our AI analyzes uploaded images using state-of-the-art computer vision, identifying pest species with high accuracy based on visual features, patterns, and morphology.</p>
+                </div>
+                <div class="highlight-item">
+                    <i class="fas fa-brain"></i>
+                    <h3>Contextual Understanding</h3>
+                    <p>The AI doesn't just classify - it understands agricultural context, providing relevant treatment methods, prevention strategies, and damage symptoms tailored to each pest.</p>
+                </div>
+                <div class="highlight-item">
+                    <i class="fas fa-sync-alt"></i>
+                    <h3>Dynamic Generation</h3>
+                    <p>When encountering new pests, the system automatically generates complete information pages including scientific names, treatments, and prevention methods - expanding beyond the default 12 species.</p>
+                </div>
             </div>
         </div>
 
         <div class="about-grid">
             <div class="card">
-                <h2>Model Performance</h2>
-                <img src="{{ url_for('public_assets', filename='images/ui/accuracy-graph.png') }}" 
-                     alt="Model Accuracy Graph"
-                     class="about-diagram">
-                <ul class="about-list">
-                    <li>High Classification Accuracy</li>
-                    <li>Real-Time Processing</li>
-                    <li>Continuous Learning</li>
-                </ul>
+                <h2>How Our AI System Works</h2>
+                <div class="workflow-steps">
+                    <div class="workflow-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Image Upload</h3>
+                            <p>User uploads a clear photo of the pest they want to identify</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Visual Analysis</h3>
+                            <p>The AI processes the image using advanced computer vision to identify visual features</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Classification</h3>
+                            <p>AI determines if it's a known pest or identifies the species if it's outside the default set</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Information Generation</h3>
+                            <p>For new pests, the system generates comprehensive treatment and prevention information</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h3>Results Display</h3>
+                            <p>User receives detailed pest information, confidence score, and actionable recommendations</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="card">
-                <h2>System Features</h2>
+                <h2>System Capabilities</h2>
                 <img src="{{ url_for('public_assets', filename='images/ui/features-diagram.png') }}" 
                      alt="System Features Diagram"
                      class="about-diagram">
                 <ul class="about-list">
-                    <li>Multi-Class Classification</li>
-                    <li>Real-Time Detection</li>
-                    <li>Treatment Reccomendations</li>
-                    <li>Complex Program</li>
-                    <li>Follows Software Practices</li>
+                    <li><strong>Unlimited Pest Detection:</strong> Identifies any agricultural pest, not just pre-defined categories</li>
+                    <li><strong>Real-Time Processing:</strong> Instant AI analysis and classification via cloud API</li>
+                    <li><strong>Dynamic Information:</strong> Automatically generates treatment and prevention strategies</li>
+                    <li><strong>Multimodal AI:</strong> Combines vision and language understanding for comprehensive results</li>
+                    <li><strong>Confidence Scoring:</strong> Provides accuracy metrics for each detection</li>
+                    <li><strong>Professional Recommendations:</strong> Science-based organic and chemical treatment options</li>
                 </ul>
             </div>
         </div>
 
         <div class="card">
-            <h2>Supported Pest Categories</h2>
+            <h2>Default Pest Database</h2>
+            <p class="database-intro">
+                While Gemini AI can identify virtually any agricultural pest, we maintain a curated database of 12 common 
+                species with pre-loaded information for instant access. Beyond these, the system dynamically generates 
+                information for any newly detected pests.
+            </p>
             <div class="categories-grid">
                 <div>
                     <h3 class="category-title">Flying Pests</h3>
@@ -79,8 +127,100 @@
                     </ul>
                 </div>
             </div>
+            <p class="note"><em>+ Unlimited additional species through AI-powered dynamic detection</em></p>
+        </div>
+
+        <div class="card">
+            <h2>Why Pretrained AI Instead of a Custom CNN?</h2>
+            <p class="about-intro">
+                While training a custom Convolutional Neural Network (CNN) was initially considered, leveraging a pretrained 
+                multimodal AI model offers significant advantages for agricultural pest detection:
+            </p>
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <i class="fas fa-infinity"></i>
+                    <h3>Unlimited Training Data</h3>
+                    <p>Pretrained models are built on billions of images, far exceeding what we could collect and label for a custom CNN. This provides superior accuracy across diverse pest types.</p>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-bolt"></i>
+                    <h3>No Training Required</h3>
+                    <p>Eliminates months of data collection, labeling, and model training. We can deploy immediately with world-class performance instead of starting from scratch.</p>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-brain"></i>
+                    <h3>Multimodal Intelligence</h3>
+                    <p>Unlike CNNs that only classify images, pretrained AI combines vision and language understanding to generate detailed pest information, treatments, and prevention strategies automatically.</p>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-globe"></i>
+                    <h3>Global Pest Coverage</h3>
+                    <p>A custom CNN would be limited to the 12 pest species we trained it on. Pretrained AI recognizes thousands of pest species globally, including regional and rare varieties.</p>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-sync-alt"></i>
+                    <h3>Always Up-to-Date</h3>
+                    <p>Cloud-based models continuously improve with the latest AI advancements. A custom CNN would require retraining whenever we need updates or improvements.</p>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-dollar-sign"></i>
+                    <h3>Cost-Effective</h3>
+                    <p>No need for expensive GPU infrastructure, data storage, or ML expertise for training and maintenance. Pay-per-use API calls are more economical than maintaining custom models.</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Image Zoom Modal -->
+<div class="image-zoom-modal" id="imageZoomModal">
+    <span class="image-zoom-close" id="imageZoomClose">&times;</span>
+    <img id="zoomedImage" src="" alt="Zoomed view">
+</div>
+
+<script>
+// Image zoom functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const diagramImages = document.querySelectorAll('.about-diagram');
+    const zoomModal = document.getElementById('imageZoomModal');
+    const zoomedImage = document.getElementById('zoomedImage');
+    const closeBtn = document.getElementById('imageZoomClose');
+    
+    // Add click event to all diagram images
+    diagramImages.forEach(img => {
+        img.addEventListener('click', function() {
+            zoomedImage.src = this.src;
+            zoomedImage.alt = this.alt;
+            zoomModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+    
+    // Close modal when clicking the close button
+    closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeModal();
+    });
+    
+    // Close modal when clicking outside the image
+    zoomModal.addEventListener('click', function(e) {
+        if (e.target === zoomModal) {
+            closeModal();
+        }
+    });
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && zoomModal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+    
+    function closeModal() {
+        zoomModal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+});
+</script>
 
 {% endblock %}
