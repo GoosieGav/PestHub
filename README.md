@@ -65,7 +65,7 @@ Follow these steps to set up and run PEST-Hub on your local machine:
 
 - If you encounter API errors, ensure your `GEMINI_API_KEY` is set correctly in the `.env` file
 - For image processing issues, check that you have Pillow installed correctly
-- The app runs on port 4000 by default (avoiding macOS AirPlay conflict on port 5000)
+- The app runs on port 8000 by default
 - Ensure you have an active internet connection for Gemini API calls
 
 ## Key Features
@@ -172,7 +172,4 @@ This means the system can identify and provide actionable information for virtua
 ## Authors
 
 - Gavin Luo (@GoosieGav), Zain Saquer (@ZAJMS1)
-
-## Achievement
-This project won first place at the Missouri Technology Student Association competition in the "Software Development" event.
 
