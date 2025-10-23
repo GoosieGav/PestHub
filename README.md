@@ -47,11 +47,6 @@ Follow these steps to set up and run PEST-Hub on your local machine:
 
 4. **Set up virtual environment and install dependencies**
    ```
-   # Run the setup script (Unix/Mac)
-   chmod +x setup.sh
-   ./setup.sh
-   
-   # OR set up manually (Windows/Other)
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    pip install -r requirements.txt
@@ -64,7 +59,7 @@ Follow these steps to set up and run PEST-Hub on your local machine:
    ```
 
 6. **Access the application**
-   Open your browser and navigate to `http://127.0.0.1:4000`
+   Open your browser and navigate to `http://127.0.0.1:8000`
 
 ### Troubleshooting
 
@@ -95,28 +90,6 @@ PEST-Hub goes beyond a fixed database of pests. Using advanced Gemini AI capabil
   - Common species information
 
 This means the system can identify and provide actionable information for virtually any agricultural pest, making it truly adaptive to diverse farming needs.
-
-## Application Pages
-
-### Home Page
-<img src="readMeImages/PestHubPhoto.png" alt="PestHub Home Page" width="800"/>
-
-### Classification Tool
-<img src="readMeImages/ClassificationDemo.png" alt="Classification Interface" width="800"/>
-
-### Classification Demo
-<img src="readMeImages/DetectionExample.png" alt="Pest Classification Example" width="800"/>
-
-### Pest Directory
-<img src="readMeImages/PestDirectory.png" alt="Pest Directory" width="800"/>
-
-### Individual Pest Information
-<img src="readMeImages/PestInfo.png" alt="Pest Information Page" width="800"/>
-
-## Technical Architecture
-
-### About Page
-<img src="readMeImages/AboutPage.png" alt="Model Accuracy Graph" width="600"/>
 
 ## Application Architecture
 
