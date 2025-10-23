@@ -804,6 +804,21 @@ def generate_pest_info(pest_name, scientific_name, image_bytes):
     try:
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
         
+        # Save the uploaded image for the dynamic pest
+        dynamic_pests_dir = os.path.join('public_assets', 'images', 'dynamic_pests')
+        os.makedirs(dynamic_pests_dir, exist_ok=True)
+        
+        # Create a safe filename from pest name
+        safe_filename = pest_name.lower().replace(' ', '_') + '.jpg'
+        image_path = os.path.join(dynamic_pests_dir, safe_filename)
+        
+        # Save the image
+        image.save(image_path, 'JPEG', quality=95)
+        logger.info(f"Saved dynamic pest image to {image_path}")
+        
+        # Store relative path for URL
+        image_url = f'dynamic_pests/{safe_filename}'
+        
         prompt = f"""You are an agricultural pest expert. Provide comprehensive information about {pest_name} ({scientific_name if scientific_name else 'provide scientific name'}).
 
 Respond in this EXACT format:
@@ -831,7 +846,7 @@ Be specific and professional. Use ||| as separator for list items."""
         pest_data = {
             'name': pest_name,
             'scientific_name': scientific_name or pest_name,
-            'image': 'placeholder.jpg',
+            'image': image_url,  # Use the saved image path
             'description': '',
             'symptoms': [],
             'organic_treatment': [],
@@ -978,4 +993,4 @@ def predict():
         return jsonify({'error': f'Error processing image: {str(e)}'})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=4000)
+    app.run(debug=True, host='127.0.0.1', port=8000)

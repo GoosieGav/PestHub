@@ -19,7 +19,11 @@
             <div class="header-content">
                 <div class="pest-image-wrapper">
                     {% set known_pests = ['ants.jpg', 'bees.jpg', 'beetles.jpg', 'caterpillars.jpg', 'earthworms.jpg', 'earwigs.jpg', 'grasshoppers.jpg', 'moths.jpg', 'slugs.jpg', 'snails.jpg', 'wasps.jpg', 'weevils.jpg'] %}
-                    {% if pest.image in known_pests %}
+                    {% if pest.image.startswith('dynamic_pests/') %}
+                        <img src="{{ url_for('public_assets', filename='images/' + pest.image) }}" 
+                             alt="{{ pest.name }}"
+                             class="pest-main-image">
+                    {% elif pest.image in known_pests %}
                         <img src="{{ url_for('public_assets', filename='images/pests/' + pest.image) }}" 
                              alt="{{ pest.name }}"
                              class="pest-main-image">

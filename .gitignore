@@ -10,6 +10,10 @@ static/
 # But allow public assets
 !public_assets/
 
+# User-uploaded dynamic pest images
+public_assets/images/dynamic_pests/*
+!public_assets/images/dynamic_pests/.gitkeep
+
 # Python
 __pycache__/
 *.py[cod]
