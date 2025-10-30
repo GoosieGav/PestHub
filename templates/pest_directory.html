@@ -13,22 +13,22 @@
         <div class="header-content">
             <h1>Comprehensive Pest Directory</h1>
             <div class="hero-description">
-                <p>Explore detailed information about agricultural pests, their identification, treatment options, and prevention strategies.</p>
+                <p>Explore detailed information about pests with AI-powered custom search. Browse our curated database or search for any pest by name.</p>
             </div>
             
             <!-- Quick Stats -->
             <div class="quick-stats">
                 <div class="stat-card">
                     <div class="stat-number">{{ pests|length }}</div>
-                    <div class="stat-label">Pest Types</div>
+                    <div class="stat-label">Curated Pests</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">100%</div>
-                    <div class="stat-label">AI Detectable</div>
+                    <div class="stat-label">AI Powered</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">3</div>
-                    <div class="stat-label">Treatment Methods</div>
+                    <div class="stat-number">∞</div>
+                    <div class="stat-label">Custom Search</div>
                 </div>
             </div>
         </div>
@@ -80,7 +80,17 @@
             <button class="reset-btn" id="reset-filters">
                 <i class="fas fa-undo"></i> Reset
             </button>
+            
+            <button class="custom-search-btn" id="custom-search-btn" onclick="openCustomSearchModal()">
+                <i class="fas fa-sparkles"></i> Custom Search
+            </button>
         </div>
+    </div>
+
+    <!-- Custom Search Results Section -->
+    <div id="custom-search-results" class="custom-search-results" style="display: none;">
+        <h3><i class="fas fa-robot"></i> AI-Generated Search Results</h3>
+        <div id="custom-pest-container" class="pest-container"></div>
     </div>
 
     <!-- Results Section -->
@@ -223,6 +233,28 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Search Modal (outside directory-container) -->
+<div id="custom-search-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-sparkles"></i> Custom Pest Search</h3>
+            <button class="modal-close" onclick="closeCustomSearchModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Search for any pest by name - agricultural, household, or garden. Our AI will verify if it's a pest and provide detailed information.</p>
+            <div class="custom-search-input-container">
+                <input type="text" id="custom-search-input" placeholder="Enter pest name (e.g., 'Mosquitoes', 'Silverfish', 'Aphids')..." autofocus>
+                <button class="btn btn-primary" id="custom-search-submit">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+            <div id="custom-search-status" class="custom-search-status"></div>
         </div>
     </div>
 </div>
@@ -520,6 +552,217 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+    
+    // Custom Search Modal Functions
+    const customSearchBtn = document.getElementById('custom-search-btn');
+    const customSearchModal = document.getElementById('custom-search-modal');
+    const customSearchInput = document.getElementById('custom-search-input');
+    const customSearchSubmit = document.getElementById('custom-search-submit');
+    const customSearchStatus = document.getElementById('custom-search-status');
+    const customSearchResults = document.getElementById('custom-search-results');
+    const customPestContainer = document.getElementById('custom-pest-container');
+    
+    if (customSearchBtn && customSearchModal) {
+        customSearchBtn.addEventListener('click', () => {
+            console.log('Custom search button clicked');
+            customSearchModal.classList.add('active');
+            customSearchModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            if (customSearchInput) customSearchInput.focus();
+            if (customSearchStatus) customSearchStatus.innerHTML = '';
+        });
+    } else {
+        console.error('Custom search elements not found:', {
+            btn: !!customSearchBtn,
+            modal: !!customSearchModal
+        });
+    }
+    
+    if (customSearchSubmit) {
+        customSearchSubmit.addEventListener('click', performCustomSearch);
+    }
+    
+    if (customSearchInput) {
+        customSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performCustomSearch();
+            }
+        });
+    }
+    
+    // Click outside to close
+    if (customSearchModal) {
+        customSearchModal.addEventListener('click', (e) => {
+            if (e.target === customSearchModal) {
+                closeCustomSearchModal();
+            }
+        });
+    }
 });
+
+function openCustomSearchModal() {
+    const modal = document.getElementById('custom-search-modal');
+    const input = document.getElementById('custom-search-input');
+    const status = document.getElementById('custom-search-status');
+    
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        if (input) {
+            setTimeout(() => input.focus(), 100);
+        }
+        if (status) {
+            status.innerHTML = '';
+        }
+    }
+}
+
+function closeCustomSearchModal() {
+    const modal = document.getElementById('custom-search-modal');
+    const input = document.getElementById('custom-search-input');
+    const status = document.getElementById('custom-search-status');
+    
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+    if (input) {
+        input.value = '';
+    }
+    if (status) {
+        status.innerHTML = '';
+    }
+}
+
+async function performCustomSearch() {
+    const input = document.getElementById('custom-search-input');
+    const status = document.getElementById('custom-search-status');
+    const query = input.value.trim();
+    
+    if (!query) {
+        status.innerHTML = '<p class="error-message"><i class="fas fa-exclamation-circle"></i> Please enter a pest name.</p>';
+        return;
+    }
+    
+    // Show loading state
+    status.innerHTML = '<p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Searching with AI...</p>';
+    
+    try {
+        const response = await fetch('/search_pest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ query: query })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            status.innerHTML = `<p class="error-message"><i class="fas fa-exclamation-circle"></i> Error: ${data.error}</p>`;
+            return;
+        }
+        
+        if (!data.is_pest) {
+            status.innerHTML = '<p class="error-message"><i class="fas fa-times-circle"></i> No results found. This doesn\'t appear to be a pest or insect.</p>';
+            return;
+        }
+        
+        // Success! Close modal and display result
+        status.innerHTML = '<p class="success-message"><i class="fas fa-check-circle"></i> Pest found! Generating card...</p>';
+        
+        setTimeout(() => {
+            closeCustomSearchModal();
+            displayCustomPestCard(data.pest_data);
+        }, 800);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        status.innerHTML = '<p class="error-message"><i class="fas fa-exclamation-circle"></i> An error occurred. Please try again.</p>';
+    }
+}
+
+function displayCustomPestCard(pestData) {
+    const customSearchResults = document.getElementById('custom-search-results');
+    const customPestContainer = document.getElementById('custom-pest-container');
+    
+    // Show the custom search results section
+    customSearchResults.style.display = 'block';
+    
+    // Scroll to the results
+    customSearchResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Create the pest card
+    const threatClass = pestData.threat_level || 'medium';
+    const threatText = threatClass.charAt(0).toUpperCase() + threatClass.slice(1) + ' Threat';
+    
+    // For custom searches, use placeholder image
+    const imageUrl = pestData.image === 'placeholder' 
+        ? '/assets/images/ui/hero-pest-detection.png' 
+        : `/assets/images/pests/${pestData.image}`;
+    
+    const symptomsJson = JSON.stringify(pestData.symptoms || []);
+    
+    const cardHTML = `
+        <div class="pest-card custom-pest-card"
+             data-pest-name="${pestData.name}"
+             data-pest-scientific="${pestData.scientific_name}"
+             data-pest-description="${pestData.description}"
+             data-pest-image="${imageUrl}"
+             data-pest-symptoms='${symptomsJson}'
+             data-pest-url="${pestData.info_url}"
+             data-threat="${threatClass}"
+             data-category="${pestData.category.toLowerCase().replace(' pest', '')}"
+             onclick="window.location.href='${pestData.info_url}'">
+            
+            <div class="pest-image-section">
+                <img src="${imageUrl}" alt="${pestData.name}" class="pest-image">
+                <div class="pest-overlay">
+                    <span class="threat-level ${threatClass}">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        ${threatText}
+                    </span>
+                </div>
+                <div class="ai-badge">
+                    <i class="fas fa-robot"></i> AI Generated
+                </div>
+            </div>
+            
+            <div class="pest-content">
+                <div class="pest-header">
+                    <h3 class="pest-name">${pestData.name}</h3>
+                    <span class="pest-category">${pestData.category}</span>
+                </div>
+                <p class="pest-scientific">${pestData.scientific_name}</p>
+                <p class="pest-summary">${pestData.description}</p>
+                
+                <div class="pest-actions">
+                    <button class="btn btn-outline btn-sm quick-view-btn" onclick="event.stopPropagation();">
+                        <i class="fas fa-eye"></i> Quick View
+                    </button>
+                    <a href="${pestData.info_url}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-arrow-right"></i> Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    customPestContainer.innerHTML = cardHTML;
+    
+    // Add event listener to the new Quick View button
+    const quickViewBtn = customPestContainer.querySelector('.quick-view-btn');
+    if (quickViewBtn) {
+        quickViewBtn.addEventListener('click', function(event) {
+            event.stopPropagation();
+            const card = this.closest('.pest-card');
+            if (card) {
+                openPreviewModalFromData(card);
+            }
+        });
+    }
+}
 </script>
 {% endblock %}
