@@ -7,7 +7,7 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getThreatColor, getThreatLabel } from '../data/pests';
+import { getThreatColor, getThreatLabel } from '../pests';
 
 export default function PestDetailScreen({ route }) {
   const { pest, customPest } = route.params || {};
@@ -27,9 +27,11 @@ export default function PestDetailScreen({ route }) {
       {/* Header Card */}
       <View style={styles.headerCard}>
         <View style={styles.imageSection}>
-          <View style={styles.placeholderImage}>
-            <Ionicons name="bug" size={60} color="#9ca3af" />
-          </View>
+          <Image 
+            source={{ uri: pestData.image }}
+            style={styles.pestImage}
+            resizeMode="cover"
+          />
           {customPest && (
             <View style={styles.aiBadge}>
               <Ionicons name="sparkles" size={14} color="#ffffff" />
@@ -190,13 +192,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     position: 'relative',
   },
-  placeholderImage: {
+  pestImage: {
     width: 150,
     height: 150,
     borderRadius: 75,
     backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   aiBadge: {
     position: 'absolute',
