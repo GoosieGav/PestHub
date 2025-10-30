@@ -1,6 +1,12 @@
 # PEST-Hub: AI-Powered Agricultural Pest Detection
 
-PEST-Hub is an advanced web application that uses Google's Gemini AI to identify and provide management recommendations for agricultural pests. Built with Flask and Gemini API, it offers real-time pest detection and comprehensive pest management information.
+PEST-Hub is an advanced application that uses Google's Gemini AI to identify and provide management recommendations for agricultural pests. Built with Flask and Gemini API, it offers real-time pest detection and comprehensive pest management information.
+
+## 📱 Platforms
+
+- **Web Application**: Full-featured web interface (Flask + HTML/CSS/JS)
+- **Mobile Application**: Native mobile app with camera integration (React Native + Expo SDK 54)
+  - See the [`mobile/`](mobile/) directory for the React Native mobile app
 
 ## Installation and Setup
 
@@ -31,6 +37,10 @@ Follow these steps to set up and run PEST-Hub on your local machine:
    │   │   └── ui/             # UI elements and diagrams
    ├── templates/              # HTML templates
    ├── assets/css/             # CSS stylesheets
+   ├── mobile/                 # React Native mobile application
+   │   ├── screens/            # Mobile app screens
+   │   ├── services/           # API integration
+   │   └── data/               # Static data
    ├── app.py                  # Main Flask application
    ├── .env                    # Environment variables (GEMINI_API_KEY)
    └── requirements.txt        # Python dependencies
@@ -67,6 +77,34 @@ Follow these steps to set up and run PEST-Hub on your local machine:
 - For image processing issues, check that you have Pillow installed correctly
 - The app runs on port 8000 by default
 - Ensure you have an active internet connection for Gemini API calls
+
+## 📱 Mobile App Setup
+
+The mobile application provides native iOS and Android apps with camera integration for on-the-go pest detection.
+
+### Quick Start
+
+```bash
+cd mobile
+npm install
+npm start
+```
+
+Then:
+- Press `i` for iOS Simulator (Mac only)
+- Press `a` for Android Emulator
+- Scan QR code with Expo Go on your physical device
+
+### Features
+
+- ✅ **Native Camera**: Take photos directly with device camera
+- ✅ **Photo Library**: Select existing images from gallery
+- ✅ **Real-time AI**: Instant pest identification
+- ✅ **Custom Search**: Search any pest by name
+- ✅ **Offline Directory**: Browse pest information
+- ✅ **Cross-platform**: Works on iOS and Android
+
+For detailed mobile setup instructions, see [`mobile/SETUP.md`](mobile/SETUP.md)
 
 ## Key Features
 
