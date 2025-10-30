@@ -899,6 +899,88 @@ Be specific and professional. Use ||| as separator for list items."""
         logger.error(f"Error generating pest info: {str(e)}", exc_info=True)
         return None
 
+def generate_pest_info_text(pest_name, scientific_name):
+    """Generate comprehensive pest information using Gemini AI (text-only, no image)"""
+    try:
+        prompt = f"""You are an agricultural pest expert. Provide comprehensive information about {pest_name} ({scientific_name if scientific_name else 'provide scientific name'}).
+
+Respond in this EXACT format:
+
+SCIENTIFIC_NAME: [scientific name]
+DESCRIPTION: [2-3 sentences about the pest]
+SYMPTOMS: [5 damage symptoms, separated by ||| ]
+ORGANIC_TREATMENT: [5 organic treatment methods, separated by ||| ]
+CHEMICAL_TREATMENT: [5 chemical treatment methods, separated by ||| ]
+PREVENTION: [5 prevention strategies, separated by ||| ]
+SPECIES_1_NAME: [common species name]
+SPECIES_1_DESC: [description]
+SPECIES_2_NAME: [common species name]
+SPECIES_2_DESC: [description]
+SPECIES_3_NAME: [common species name]
+SPECIES_3_DESC: [description]
+
+Be specific and professional. Use ||| as separator for list items."""
+
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
+        logger.info(f"Generated pest info for {pest_name}")
+        
+        # Parse the response
+        pest_data = {
+            'name': pest_name,
+            'scientific_name': scientific_name or pest_name,
+            'image': 'placeholder',
+            'description': '',
+            'symptoms': [],
+            'organic_treatment': [],
+            'chemical_treatment': [],
+            'prevention': [],
+            'common_species': []
+        }
+        
+        for line in response_text.split('\n'):
+            line = line.strip()
+            if line.startswith('SCIENTIFIC_NAME:'):
+                pest_data['scientific_name'] = line.replace('SCIENTIFIC_NAME:', '').strip()
+            elif line.startswith('DESCRIPTION:'):
+                pest_data['description'] = line.replace('DESCRIPTION:', '').strip()
+            elif line.startswith('SYMPTOMS:'):
+                symptoms_text = line.replace('SYMPTOMS:', '').strip()
+                pest_data['symptoms'] = [s.strip() for s in symptoms_text.split('|||') if s.strip()]
+            elif line.startswith('ORGANIC_TREATMENT:'):
+                treatment_text = line.replace('ORGANIC_TREATMENT:', '').strip()
+                pest_data['organic_treatment'] = [t.strip() for t in treatment_text.split('|||') if t.strip()]
+            elif line.startswith('CHEMICAL_TREATMENT:'):
+                treatment_text = line.replace('CHEMICAL_TREATMENT:', '').strip()
+                pest_data['chemical_treatment'] = [t.strip() for t in treatment_text.split('|||') if t.strip()]
+            elif line.startswith('PREVENTION:'):
+                prevention_text = line.replace('PREVENTION:', '').strip()
+                pest_data['prevention'] = [p.strip() for p in prevention_text.split('|||') if p.strip()]
+            elif line.startswith('SPECIES_1_NAME:'):
+                species_name = line.replace('SPECIES_1_NAME:', '').strip()
+                pest_data['_species_1_name'] = species_name
+            elif line.startswith('SPECIES_1_DESC:'):
+                species_desc = line.replace('SPECIES_1_DESC:', '').strip()
+                pest_data['common_species'].append({'name': pest_data.get('_species_1_name', 'Common Species 1'), 'description': species_desc})
+            elif line.startswith('SPECIES_2_NAME:'):
+                species_name = line.replace('SPECIES_2_NAME:', '').strip()
+                pest_data['_species_2_name'] = species_name
+            elif line.startswith('SPECIES_2_DESC:'):
+                species_desc = line.replace('SPECIES_2_DESC:', '').strip()
+                pest_data['common_species'].append({'name': pest_data.get('_species_2_name', 'Common Species 2'), 'description': species_desc})
+            elif line.startswith('SPECIES_3_NAME:'):
+                species_name = line.replace('SPECIES_3_NAME:', '').strip()
+                pest_data['_species_3_name'] = species_name
+            elif line.startswith('SPECIES_3_DESC:'):
+                species_desc = line.replace('SPECIES_3_DESC:', '').strip()
+                pest_data['common_species'].append({'name': pest_data.get('_species_3_name', 'Common Species 3'), 'description': species_desc})
+        
+        return pest_data
+        
+    except Exception as e:
+        logger.error(f"Error generating pest info: {str(e)}", exc_info=True)
+        return None
+
 def is_pest(class_name, confidence):
     # Placeholder function - in reality, this would use the actual model's confidence threshold
     # and potentially additional verification steps
@@ -936,6 +1018,124 @@ def pest_details(pest_name):
 @app.route('/pests')
 def pest_directory():
     return render_template('pest_directory.html', pests=pest_info.values())
+
+@app.route('/search_pest', methods=['POST'])
+def search_pest():
+    """Custom pest search using text input"""
+    data = request.get_json()
+    pest_query = data.get('query', '').strip()
+    
+    if not pest_query:
+        return jsonify({'error': 'No search query provided'})
+    
+    try:
+        # First, check if it's in our known pests
+        pest_query_normalized = pest_query.title()
+        if pest_query_normalized in pest_info:
+            pest_data = pest_info[pest_query_normalized]
+            pest_key = pest_query_normalized.lower().replace(' ', '_')
+            return jsonify({
+                'is_pest': True,
+                'is_known': True,
+                'pest_data': {
+                    'name': pest_data['name'],
+                    'scientific_name': pest_data['scientific_name'],
+                    'image': pest_data['image'],
+                    'description': pest_data['description'],
+                    'symptoms': pest_data['symptoms'],
+                    'threat_level': get_threat_level(pest_data['name']),
+                    'category': get_category_display(pest_data['name']),
+                    'info_url': f'/pest/{pest_key}'
+                }
+            })
+        
+        # Use Gemini to verify if it's an insect/arthropod and get information
+        prompt = f"""Is "{pest_query}" an insect, arthropod, or other creature that could be considered a pest (including agricultural pests, household pests, garden pests, etc.)? Respond ONLY in this exact format:
+
+IS_PEST: [YES or NO]
+PEST_NAME: [proper common name if YES, empty if NO]
+SCIENTIFIC_NAME: [scientific name if YES, empty if NO]
+DESCRIPTION: [2-3 sentences about the pest if YES, empty if NO]
+THREAT_LEVEL: [low, medium, or high if YES, empty if NO]
+CATEGORY: [crawling, flying, larval, or soft-bodied if YES, empty if NO]
+SYMPTOMS: [5 common damage symptoms or problems they cause, separated by ||| if YES, empty if NO]
+
+Respond YES if it's an insect, spider, mite, or similar creature that can be a pest. Include agricultural pests, household pests, and garden pests. Only respond NO if it's clearly not a pest at all (like a beneficial insect being asked about in a non-pest context, or not an insect/arthropod at all)."""
+
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
+        logger.info(f"Custom search for '{pest_query}': {response_text[:100]}")
+        
+        # Parse the response
+        is_pest_response = False
+        pest_data = {}
+        
+        for line in response_text.split('\n'):
+            line = line.strip()
+            if line.startswith('IS_PEST:'):
+                is_pest_response = 'YES' in line.upper()
+            elif line.startswith('PEST_NAME:'):
+                pest_data['name'] = line.replace('PEST_NAME:', '').strip()
+            elif line.startswith('SCIENTIFIC_NAME:'):
+                pest_data['scientific_name'] = line.replace('SCIENTIFIC_NAME:', '').strip()
+            elif line.startswith('DESCRIPTION:'):
+                pest_data['description'] = line.replace('DESCRIPTION:', '').strip()
+            elif line.startswith('THREAT_LEVEL:'):
+                threat = line.replace('THREAT_LEVEL:', '').strip().lower()
+                pest_data['threat_level'] = threat if threat in ['low', 'medium', 'high'] else 'medium'
+            elif line.startswith('CATEGORY:'):
+                category = line.replace('CATEGORY:', '').strip().lower()
+                category_map = {
+                    'crawling': 'Crawling Pest',
+                    'flying': 'Flying Pest',
+                    'larval': 'Larval Pest',
+                    'soft-bodied': 'Soft-bodied Pest'
+                }
+                pest_data['category'] = category_map.get(category, 'Crawling Pest')
+            elif line.startswith('SYMPTOMS:'):
+                symptoms_text = line.replace('SYMPTOMS:', '').strip()
+                pest_data['symptoms'] = [s.strip() for s in symptoms_text.split('|||') if s.strip()]
+        
+        if not is_pest_response:
+            return jsonify({'is_pest': False})
+        
+        # Generate full pest information and store in session
+        pest_name = pest_data.get('name', pest_query)
+        scientific_name = pest_data.get('scientific_name', '')
+        
+        # Generate comprehensive information
+        full_pest_data = generate_pest_info_text(pest_name, scientific_name)
+        
+        if full_pest_data:
+            # Store in session
+            if 'dynamic_pests' not in session:
+                session['dynamic_pests'] = {}
+            
+            pest_key = pest_name.lower().replace(' ', '_')
+            session['dynamic_pests'][pest_key] = full_pest_data
+            session.modified = True
+            
+            # Return card data
+            return jsonify({
+                'is_pest': True,
+                'is_known': False,
+                'pest_data': {
+                    'name': pest_name,
+                    'scientific_name': pest_data.get('scientific_name', ''),
+                    'image': 'placeholder',
+                    'description': pest_data.get('description', ''),
+                    'symptoms': pest_data.get('symptoms', []),
+                    'threat_level': pest_data.get('threat_level', 'medium'),
+                    'category': pest_data.get('category', 'Crawling Pest'),
+                    'info_url': f'/pest/{pest_key}'
+                }
+            })
+        else:
+            return jsonify({'is_pest': False})
+        
+    except Exception as e:
+        logger.error(f'Error during custom search: {str(e)}', exc_info=True)
+        return jsonify({'error': f'Error processing search: {str(e)}'})
 
 @app.route('/predict', methods=['POST'])
 def predict():
