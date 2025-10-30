@@ -120,7 +120,7 @@ The mobile application provides native iOS and Android apps with camera integrat
    ```
    
    **Finding your computer's IP address:**
-   - **Mac/Linux**: Run `ifconfig | grep "inet " | grep -v 127.0.0.1` in terminal
+   - **Mac/Linux**: Run `ifconfig | grep "inet " | grep -v 127.0.0.1` in terminal (inet is the correct address, not broadcast)
    - **Windows**: Run `ipconfig` in command prompt and look for IPv4 Address
    - **Common format**: `192.168.x.x` or `10.0.x.x`
    
