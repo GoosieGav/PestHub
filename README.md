@@ -84,12 +84,10 @@ The mobile application provides native iOS and Android apps with camera integrat
 
 ### Prerequisites
 
-**⚠️ IMPORTANT: The Flask backend must be running before starting the mobile app.**
+**The Flask backend must be running before starting the mobile app.**
 
 1. **First, start the web server** (see steps 1-5 above)
-   ```bash
-   # In the project root directory
-   source venv/bin/activate
+   ``
    python app.py
    ```
    The server should be running on `http://127.0.0.1:8000`
@@ -157,13 +155,6 @@ The mobile application provides native iOS and Android apps with camera integrat
      - Scan the QR code shown in terminal/browser
      - Wait for app to load
 
-### Troubleshooting Mobile App
-
-- **"Network request failed"**: Ensure Flask server is running and IP address in `.env` is correct
-- **Can't connect to server**: Verify both devices are on the same WiFi network
-- **Module errors**: Try running `npx expo start --clear` to clear cache
-- **Changes not reflecting**: Stop the server (Ctrl+C) and restart after modifying `.env`
-
 ### Features
 
 - ✅ **Native Camera**: Take photos directly with device camera (mobile exclusive)
@@ -173,7 +164,6 @@ The mobile application provides native iOS and Android apps with camera integrat
 - ✅ **Offline Directory**: Browse pest information
 - ✅ **Cross-platform**: Works on iOS and Android
 
-For detailed mobile setup instructions, see [`mobile/SETUP.md`](mobile/SETUP.md)
 
 ## Key Features
 
