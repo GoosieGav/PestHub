@@ -781,16 +781,15 @@ Be precise and accurate."""
                 description = line.replace('DESCRIPTION:', '').strip()
         
         # If it's a known pest, validate it
-        if is_match:
-            if pest_name not in class_names:
-                # Try to find closest match
-                for class_name in class_names:
-                    if class_name.lower() in pest_name.lower() or pest_name.lower() in class_name.lower():
-                        pest_name = class_name
-                        break
-                else:
-                    pest_name = 'Beetles'
-                    confidence = 0.5
+        if is_match and pest_name not in class_names:
+            # Try to find closest match
+            for class_name in class_names:
+                if class_name.lower() in pest_name.lower() or pest_name.lower() in class_name.lower():
+                    pest_name = class_name
+                    break
+            else:
+                pest_name = 'Beetles'
+                confidence = 0.5
         
         logger.info(f"Final prediction: {pest_name} (Known: {is_match}) with confidence {confidence:.2%}")
         return pest_name, confidence, is_match, scientific_name, description
@@ -819,7 +818,7 @@ def generate_pest_info(pest_name, scientific_name, image_bytes):
         # Store relative path for URL
         image_url = f'dynamic_pests/{safe_filename}'
         
-        prompt = f"""You are an agricultural pest expert. Provide comprehensive information about {pest_name} ({scientific_name if scientific_name else 'provide scientific name'}).
+        prompt = f"""You are an agricultural pest expert. Provide comprehensive information about {pest_name} ({scientific_name or 'provide scientific name'}).
 
 Respond in this EXACT format:
 
@@ -902,7 +901,7 @@ Be specific and professional. Use ||| as separator for list items."""
 def generate_pest_info_text(pest_name, scientific_name):
     """Generate comprehensive pest information using Gemini AI (text-only, no image)"""
     try:
-        prompt = f"""You are an agricultural pest expert. Provide comprehensive information about {pest_name} ({scientific_name if scientific_name else 'provide scientific name'}).
+        prompt = f"""You are an agricultural pest expert. Provide comprehensive information about {pest_name} ({scientific_name or 'provide scientific name'}).
 
 Respond in this EXACT format:
 
@@ -1106,32 +1105,32 @@ Respond YES if it's an insect, spider, mite, or similar creature that can be a p
         # Generate comprehensive information
         full_pest_data = generate_pest_info_text(pest_name, scientific_name)
         
-        if full_pest_data:
-            # Store in session
-            if 'dynamic_pests' not in session:
-                session['dynamic_pests'] = {}
-            
-            pest_key = pest_name.lower().replace(' ', '_')
-            session['dynamic_pests'][pest_key] = full_pest_data
-            session.modified = True
-            
-            # Return card data
-            return jsonify({
-                'is_pest': True,
-                'is_known': False,
-                'pest_data': {
-                    'name': pest_name,
-                    'scientific_name': pest_data.get('scientific_name', ''),
-                    'image': 'placeholder',
-                    'description': pest_data.get('description', ''),
-                    'symptoms': pest_data.get('symptoms', []),
-                    'threat_level': pest_data.get('threat_level', 'medium'),
-                    'category': pest_data.get('category', 'Crawling Pest'),
-                    'info_url': f'/pest/{pest_key}'
-                }
-            })
-        else:
+        if not full_pest_data:
             return jsonify({'is_pest': False})
+        
+        # Store in session
+        if 'dynamic_pests' not in session:
+            session['dynamic_pests'] = {}
+        
+        pest_key = pest_name.lower().replace(' ', '_')
+        session['dynamic_pests'][pest_key] = full_pest_data
+        session.modified = True
+        
+        # Return card data
+        return jsonify({
+            'is_pest': True,
+            'is_known': False,
+            'pest_data': {
+                'name': pest_name,
+                'scientific_name': pest_data.get('scientific_name', ''),
+                'image': 'placeholder',
+                'description': pest_data.get('description', ''),
+                'symptoms': pest_data.get('symptoms', []),
+                'threat_level': pest_data.get('threat_level', 'medium'),
+                'category': pest_data.get('category', 'Crawling Pest'),
+                'info_url': f'/pest/{pest_key}'
+            }
+        })
         
     except Exception as e:
         logger.error(f'Error during custom search: {str(e)}', exc_info=True)
@@ -1155,9 +1154,8 @@ def predict():
         # If it's an unknown pest, generate comprehensive information
         if not is_known_pest and is_pest_result:
             logger.info(f'Unknown pest detected: {pest_name}, generating information...')
-            pest_data = generate_pest_info(pest_name, scientific_name, img_bytes)
             
-            if pest_data:
+            if pest_data := generate_pest_info(pest_name, scientific_name, img_bytes):
                 # Store in session
                 if 'dynamic_pests' not in session:
                     session['dynamic_pests'] = {}
