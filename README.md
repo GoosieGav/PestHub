@@ -87,7 +87,7 @@ The mobile application provides native iOS and Android apps with camera integrat
 **The Flask backend must be running before starting the mobile app.**
 
 1. **First, start the web server** (see steps 1-5 above)
-   ``
+   ```
    python app.py
    ```
    The server should be running on `http://127.0.0.1:8000`
@@ -154,6 +154,7 @@ The mobile application provides native iOS and Android apps with camera integrat
      - Open Expo Go app
      - Scan the QR code shown in terminal/browser
      - Wait for app to load
+
 
 ### Features
 
