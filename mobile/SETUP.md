@@ -91,7 +91,7 @@ You can use the existing PestHub logo or create new ones. If missing, default Ex
 ### 6. Start the Mobile App
 
 ```bash
-cd /Users/zainsaquer/Desktop/PestHub/mobile
+cd mobile
 npm start
 ```
 
