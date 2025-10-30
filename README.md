@@ -45,7 +45,7 @@ Follow these steps to set up and run PEST-Hub on your local machine:
    ├── .env                    # Environment variables (GEMINI_API_KEY)
    └── requirements.txt        # Python dependencies
    ```
-
+   
 3. **Set up environment variables**
    
    Create a `.env` file in the project root with your Gemini API key:

@@ -24,9 +24,9 @@
                              alt="{{ pest.name }}"
                              class="pest-main-image">
                     {% elif pest.image in known_pests %}
-                        <img src="{{ url_for('public_assets', filename='images/pests/' + pest.image) }}" 
-                             alt="{{ pest.name }}"
-                             class="pest-main-image">
+                    <img src="{{ url_for('public_assets', filename='images/pests/' + pest.image) }}" 
+                         alt="{{ pest.name }}"
+                         class="pest-main-image">
                     {% else %}
                         <div class="ai-pest-placeholder">
                             <i class="fas fa-bug"></i>
@@ -103,7 +103,7 @@
                         } %}
                         {% if pest.name in damage_image_map %}
                             <img src="{{ url_for('public_assets', filename='images/damage/' + damage_image_map[pest.name]) }}" 
-                                 alt="{{ pest.name }} damage example"
+                             alt="{{ pest.name }} damage example"
                                  class="damage-photo">
                         {% else %}
                             <div class="ai-generated-notice">

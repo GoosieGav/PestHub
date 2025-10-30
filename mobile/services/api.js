@@ -4,7 +4,8 @@ import axios from 'axios';
 // For iOS simulator use: http://localhost:8000
 // For Android emulator use: http://10.0.2.2:8000
 // For physical device use: http://YOUR_COMPUTER_IP:8000
-const API_BASE_URL = 'http://192.168.1.255:8000';
+// Set via EXPO_PUBLIC_API_BASE_URL in .env file
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
