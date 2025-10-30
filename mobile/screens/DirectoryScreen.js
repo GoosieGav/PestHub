@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { PESTS, getThreatColor, getThreatLabel } from '../data/pests';
+import { PESTS, getThreatColor, getThreatLabel } from '../pests';
 import { pestAPI } from '../services/api';
 
 export default function DirectoryScreen({ navigation }) {
@@ -169,9 +169,11 @@ export default function DirectoryScreen({ navigation }) {
               onPress={() => navigation.navigate('PestDetail', { pest })}
             >
               <View style={styles.pestImageSection}>
-                <View style={styles.placeholderImage}>
-                  <Ionicons name="bug" size={40} color="#9ca3af" />
-                </View>
+                <Image 
+                  source={{ uri: pest.image }}
+                  style={styles.pestImage}
+                  resizeMode="cover"
+                />
                 <View style={[styles.threatBadge, { backgroundColor: getThreatColor(pest.threatLevel) }]}>
                   <Ionicons name="warning" size={12} color="#ffffff" />
                   <Text style={styles.threatText}>
@@ -412,9 +414,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  placeholderImage: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  pestImage: {
+    width: '100%',
+    height: '100%',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   threatBadge: {
     position: 'absolute',
