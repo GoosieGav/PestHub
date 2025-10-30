@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "PestHub",
+    "slug": "pesthub-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#059669"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pesthub.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "PestHub needs access to your camera to take photos of pests for identification.",
+        "NSPhotoLibraryUsageDescription": "PestHub needs access to your photo library to select pest images for identification."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#059669"
+      },
+      "package": "com.pesthub.mobile",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow PestHub to access your camera to take photos of pests."
+        }
+      ]
+    ],
+    "sdkVersion": "54.0.0"
+  }
+}
+
+
