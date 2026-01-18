@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,109 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { pestAPI } from '../services/api';
+import { COLORS, GRADIENTS, SHADOWS, SPACING, FONTS } from '../theme';
+
+const { width, height } = Dimensions.get('window');
+
+// Animated Scanner Line
+const ScannerLine = ({ isActive }) => {
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isActive) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(translateY, {
+            toValue: 260,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateY, {
+            toValue: 0,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [isActive]);
+
+  if (!isActive) return null;
+
+  return (
+    <Animated.View style={[styles.scannerLine, { transform: [{ translateY }] }]}>
+      <LinearGradient
+        colors={['transparent', COLORS.primary, 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.scannerLineGradient}
+      />
+    </Animated.View>
+  );
+};
+
+// Glass Card Component
+const GlassCard = ({ children, style }) => (
+  <BlurView intensity={20} tint="dark" style={[styles.glassCard, style]}>
+    <LinearGradient
+      colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.03)']}
+      style={styles.glassGradient}
+    >
+      {children}
+    </LinearGradient>
+  </BlurView>
+);
 
 export default function ClassifyScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
+
+  // Animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Pulse animation for upload area
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.02,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   const handleCameraCapture = () => {
     navigation.navigate('Camera', {
@@ -95,7 +189,6 @@ export default function ClassifyScreen({ navigation }) {
 
   const viewPestDetails = () => {
     if (result && result.is_pest) {
-      // Navigate to pest detail screen
       navigation.navigate('PestDetail', {
         pestName: result.class_name,
         infoUrl: result.info_url,
@@ -103,424 +196,671 @@ export default function ClassifyScreen({ navigation }) {
     }
   };
 
+  const tips = [
+    { icon: 'sunny', text: 'Good lighting' },
+    { icon: 'resize', text: 'Close-up shot' },
+    { icon: 'eye', text: 'Clear focus' },
+    { icon: 'camera', text: 'Steady hand' },
+  ];
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>AI Pest Detection</Text>
-        <Text style={styles.subtitle}>
-          Identify pests instantly using your device's camera
-        </Text>
-      </View>
+    <View style={styles.container}>
+      {/* Background */}
+      <LinearGradient
+        colors={GRADIENTS.primary}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
 
-      {/* Tips */}
-      <View style={styles.tipsSection}>
-        <Text style={styles.tipsTitle}>Tips for Best Results:</Text>
-        <View style={styles.tipsGrid}>
-          {[
-            { icon: 'sunny', text: 'Good lighting' },
-            { icon: 'resize', text: 'Close-up photo' },
-            { icon: 'eye', text: 'Clear focus' },
-            { icon: 'camera', text: 'Steady shot' },
-          ].map((tip, index) => (
-            <View key={index} style={styles.tipItem}>
-              <Ionicons name={tip.icon} size={20} color="#059669" />
-              <Text style={styles.tipText}>{tip.text}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
+      {/* Glow Effects */}
+      <View style={styles.glowTop} />
+      <View style={styles.glowBottom} />
 
-      {/* Image Selection */}
-      {!selectedImage ? (
-        <View style={styles.uploadSection}>
-          <View style={styles.uploadCard}>
-            <Ionicons name="cloud-upload-outline" size={80} color="#9ca3af" />
-            <Text style={styles.uploadTitle}>Select or Capture Image</Text>
-            <Text style={styles.uploadDescription}>
-              Choose from your gallery or take a new photo
-            </Text>
-            
-            <View style={styles.uploadButtons}>
-              <TouchableOpacity
-                style={styles.cameraButton}
-                onPress={handleCameraCapture}
-              >
-                <Ionicons name="camera" size={24} color="#ffffff" />
-                <Text style={styles.cameraButtonText}>Take Photo</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.galleryButton}
-                onPress={handleGalleryPick}
-              >
-                <Ionicons name="images" size={24} color="#059669" />
-                <Text style={styles.galleryButtonText}>Choose from Gallery</Text>
-              </TouchableOpacity>
-            </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 20, paddingBottom: 120 }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <Animated.View
+          style={[
+            styles.header,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <View style={styles.headerIcon}>
+            <Ionicons name="scan" size={32} color={COLORS.primary} />
           </View>
-        </View>
-      ) : (
-        <View style={styles.imageSection}>
-          <View style={styles.imageCard}>
-            <Image source={{ uri: selectedImage }} style={styles.previewImage} />
-            
-            {!result && !isAnalyzing && (
-              <View style={styles.imageActions}>
-                <TouchableOpacity
-                  style={styles.analyzeButton}
-                  onPress={analyzeImage}
-                >
-                  <Ionicons name="flash" size={20} color="#ffffff" />
-                  <Text style={styles.analyzeButtonText}>Analyze Image</Text>
-                </TouchableOpacity>
+          <Text style={styles.title}>AI Pest Detection</Text>
+          <Text style={styles.subtitle}>
+            Identify pests instantly using advanced AI technology
+          </Text>
+        </Animated.View>
+
+        {/* Tips Section */}
+        <Animated.View
+          style={[
+            styles.tipsContainer,
+            { opacity: fadeAnim },
+          ]}
+        >
+          <Text style={styles.tipsTitle}>Tips for Best Results</Text>
+          <View style={styles.tipsGrid}>
+            {tips.map((tip, index) => (
+              <View key={index} style={styles.tipItem}>
+                <View style={styles.tipIcon}>
+                  <Ionicons name={tip.icon} size={18} color={COLORS.primary} />
+                </View>
+                <Text style={styles.tipText}>{tip.text}</Text>
+              </View>
+            ))}
+          </View>
+        </Animated.View>
+
+        {/* Image Selection / Preview */}
+        {!selectedImage ? (
+          <Animated.View
+            style={[
+              styles.uploadSection,
+              {
+                opacity: fadeAnim,
+                transform: [{ scale: pulseAnim }],
+              },
+            ]}
+          >
+            <GlassCard style={styles.uploadCard}>
+              <View style={styles.uploadContent}>
+                <View style={styles.uploadIconContainer}>
+                  <LinearGradient
+                    colors={['rgba(74, 222, 128, 0.2)', 'rgba(74, 222, 128, 0.05)']}
+                    style={styles.uploadIconGlow}
+                  />
+                  <Ionicons name="cloud-upload" size={64} color={COLORS.textMuted} />
+                </View>
+                <Text style={styles.uploadTitle}>Select or Capture Image</Text>
+                <Text style={styles.uploadDescription}>
+                  Choose from your gallery or take a new photo
+                </Text>
+
+                <View style={styles.uploadButtons}>
+                  <TouchableOpacity
+                    style={styles.cameraButton}
+                    activeOpacity={0.8}
+                    onPress={handleCameraCapture}
+                  >
+                    <LinearGradient
+                      colors={GRADIENTS.button}
+                      style={styles.cameraButtonGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                    >
+                      <Ionicons name="camera" size={24} color="#fff" />
+                      <Text style={styles.cameraButtonText}>Take Photo</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.galleryButton}
+                    activeOpacity={0.8}
+                    onPress={handleGalleryPick}
+                  >
+                    <View style={styles.galleryButtonInner}>
+                      <Ionicons name="images" size={22} color={COLORS.primary} />
+                      <Text style={styles.galleryButtonText}>Choose from Gallery</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </GlassCard>
+          </Animated.View>
+        ) : (
+          <Animated.View
+            style={[
+              styles.imageSection,
+              { opacity: fadeAnim },
+            ]}
+          >
+            <GlassCard style={styles.imageCard}>
+              <View style={styles.imageWrapper}>
+                <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                <ScannerLine isActive={isAnalyzing} />
                 
-                <TouchableOpacity
-                  style={styles.resetButton}
-                  onPress={resetAnalysis}
-                >
-                  <Ionicons name="trash-outline" size={20} color="#ef4444" />
-                  <Text style={styles.resetButtonText}>Remove</Text>
-                </TouchableOpacity>
+                {/* Corner decorations */}
+                <View style={[styles.corner, styles.cornerTL]} />
+                <View style={[styles.corner, styles.cornerTR]} />
+                <View style={[styles.corner, styles.cornerBL]} />
+                <View style={[styles.corner, styles.cornerBR]} />
               </View>
-            )}
-          </View>
-        </View>
-      )}
 
-      {/* Loading */}
-      {isAnalyzing && (
-        <View style={styles.loadingSection}>
-          <ActivityIndicator size="large" color="#059669" />
-          <Text style={styles.loadingText}>Analyzing with AI...</Text>
-          <Text style={styles.loadingSubtext}>This may take a moment</Text>
-        </View>
-      )}
+              {!result && !isAnalyzing && (
+                <View style={styles.imageActions}>
+                  <TouchableOpacity
+                    style={styles.analyzeButton}
+                    activeOpacity={0.8}
+                    onPress={analyzeImage}
+                  >
+                    <LinearGradient
+                      colors={GRADIENTS.button}
+                      style={styles.analyzeButtonGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                    >
+                      <Ionicons name="flash" size={22} color="#fff" />
+                      <Text style={styles.analyzeButtonText}>Analyze Image</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
 
-      {/* Results */}
-      {result && result.is_pest && (
-        <View style={styles.resultSection}>
-          <View style={styles.resultCard}>
-            <View style={styles.resultHeader}>
-              <Ionicons name="checkmark-circle" size={48} color="#10b981" />
-              <Text style={styles.resultTitle}>Pest Detected!</Text>
-            </View>
-            
-            <View style={styles.resultContent}>
-              <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>Pest Name:</Text>
-                <Text style={styles.resultValue}>{result.class_name}</Text>
-              </View>
-              
-              <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>Confidence:</Text>
-                <Text style={styles.resultValue}>{result.confidence}</Text>
-              </View>
-              
-              {result.is_new && (
-                <View style={styles.newPestBadge}>
-                  <Ionicons name="sparkles" size={16} color="#f59e0b" />
-                  <Text style={styles.newPestText}>AI-Generated Information</Text>
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    activeOpacity={0.8}
+                    onPress={resetAnalysis}
+                  >
+                    <Ionicons name="trash-outline" size={22} color={COLORS.danger} />
+                  </TouchableOpacity>
                 </View>
               )}
-              
-              <Text style={styles.resultMessage}>{result.message}</Text>
-            </View>
-            
-            <TouchableOpacity
-              style={styles.detailButton}
-              onPress={viewPestDetails}
-            >
-              <Text style={styles.detailButtonText}>View Full Information</Text>
-              <Ionicons name="arrow-forward" size={20} color="#ffffff" />
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.analyzeAnotherButton}
-              onPress={resetAnalysis}
-            >
-              <Ionicons name="camera-outline" size={20} color="#059669" />
-              <Text style={styles.analyzeAnotherText}>Analyze Another</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-    </ScrollView>
+            </GlassCard>
+          </Animated.View>
+        )}
+
+        {/* Loading State */}
+        {isAnalyzing && (
+          <Animated.View style={[styles.loadingSection, { opacity: fadeAnim }]}>
+            <GlassCard style={styles.loadingCard}>
+              <View style={styles.loadingSpinner}>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+              </View>
+              <Text style={styles.loadingTitle}>Analyzing with AI...</Text>
+              <Text style={styles.loadingSubtext}>
+                Our advanced AI is identifying the pest
+              </Text>
+              <View style={styles.loadingDots}>
+                {[0, 1, 2].map((i) => (
+                  <View key={i} style={styles.loadingDot} />
+                ))}
+              </View>
+            </GlassCard>
+          </Animated.View>
+        )}
+
+        {/* Results */}
+        {result && result.is_pest && (
+          <Animated.View style={[styles.resultSection, { opacity: fadeAnim }]}>
+            <GlassCard style={styles.resultCard}>
+              <View style={styles.resultHeader}>
+                <View style={styles.successIcon}>
+                  <Ionicons name="checkmark-circle" size={48} color={COLORS.success} />
+                </View>
+                <Text style={styles.resultTitle}>Pest Detected!</Text>
+              </View>
+
+              <View style={styles.resultContent}>
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Pest Name</Text>
+                  <Text style={styles.resultValue}>{result.class_name}</Text>
+                </View>
+
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Confidence</Text>
+                  <View style={styles.confidenceBadge}>
+                    <Text style={styles.confidenceText}>{result.confidence}</Text>
+                  </View>
+                </View>
+
+                {result.is_new && (
+                  <View style={styles.newPestBadge}>
+                    <Ionicons name="sparkles" size={16} color="#fbbf24" />
+                    <Text style={styles.newPestText}>AI-Generated Information</Text>
+                  </View>
+                )}
+
+                <Text style={styles.resultMessage}>{result.message}</Text>
+              </View>
+
+              <View style={styles.resultActions}>
+                <TouchableOpacity
+                  style={styles.detailButton}
+                  activeOpacity={0.8}
+                  onPress={viewPestDetails}
+                >
+                  <LinearGradient
+                    colors={GRADIENTS.button}
+                    style={styles.detailButtonGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <Text style={styles.detailButtonText}>View Full Information</Text>
+                    <Ionicons name="arrow-forward" size={20} color="#fff" />
+                  </LinearGradient>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  activeOpacity={0.8}
+                  onPress={resetAnalysis}
+                >
+                  <Ionicons name="camera-outline" size={20} color={COLORS.primary} />
+                  <Text style={styles.retryButtonText}>Scan Another</Text>
+                </TouchableOpacity>
+              </View>
+            </GlassCard>
+          </Animated.View>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: COLORS.background,
+  },
+  glowTop: {
+    position: 'absolute',
+    top: -100,
+    right: -100,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+  },
+  glowBottom: {
+    position: 'absolute',
+    bottom: 100,
+    left: -100,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(96, 165, 250, 0.08)',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: SPACING.lg,
   },
   header: {
-    padding: 20,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
+  },
+  headerIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(74, 222, 128, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
   },
   title: {
-    fontSize: 28,
+    fontSize: FONTS.h2,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginTop: 8,
+    fontSize: FONTS.bodySmall,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: SPACING.sm,
+    lineHeight: 22,
   },
-  tipsSection: {
-    padding: 20,
-    backgroundColor: '#ffffff',
-    marginTop: 10,
+  tipsContainer: {
+    marginBottom: SPACING.xl,
   },
   tipsTitle: {
-    fontSize: 16,
+    fontSize: FONTS.bodySmall,
     fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 15,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.md,
   },
   tipsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: SPACING.sm,
   },
   tipItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0fdf4',
+    backgroundColor: 'rgba(74, 222, 128, 0.1)',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
-    gap: 6,
+    gap: SPACING.xs,
+    borderWidth: 1,
+    borderColor: 'rgba(74, 222, 128, 0.2)',
+  },
+  tipIcon: {
+    opacity: 0.9,
   },
   tipText: {
-    fontSize: 13,
-    color: '#047857',
+    fontSize: FONTS.caption,
+    color: COLORS.primary,
     fontWeight: '500',
   },
+  glassCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.glassBorder,
+  },
+  glassGradient: {
+    padding: SPACING.lg,
+  },
   uploadSection: {
-    padding: 20,
+    marginBottom: SPACING.xl,
   },
   uploadCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 40,
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#e5e7eb',
+    borderRadius: 28,
     borderStyle: 'dashed',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  uploadContent: {
+    alignItems: 'center',
+    paddingVertical: SPACING.xl,
+  },
+  uploadIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.lg,
+    position: 'relative',
+  },
+  uploadIconGlow: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 60,
   },
   uploadTitle: {
-    fontSize: 20,
+    fontSize: FONTS.h4,
     fontWeight: '600',
-    color: '#1f2937',
-    marginTop: 20,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
   },
   uploadDescription: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginTop: 8,
+    fontSize: FONTS.bodySmall,
+    color: COLORS.textSecondary,
     textAlign: 'center',
+    marginBottom: SPACING.xl,
   },
   uploadButtons: {
     width: '100%',
-    marginTop: 30,
-    gap: 12,
+    gap: SPACING.md,
   },
   cameraButton: {
-    backgroundColor: '#059669',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 10,
-  },
-  cameraButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  galleryButton: {
-    backgroundColor: '#ffffff',
-    borderWidth: 2,
-    borderColor: '#059669',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 10,
-  },
-  galleryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#059669',
-  },
-  imageSection: {
-    padding: 20,
-  },
-  imageCard: {
-    backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    ...SHADOWS.glow,
+  },
+  cameraButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: SPACING.sm,
+  },
+  cameraButtonText: {
+    fontSize: FONTS.body,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  galleryButton: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+  },
+  galleryButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: SPACING.sm,
+  },
+  galleryButtonText: {
+    fontSize: FONTS.body,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  imageSection: {
+    marginBottom: SPACING.xl,
+  },
+  imageCard: {
+    borderRadius: 28,
+  },
+  imageWrapper: {
+    position: 'relative',
+    borderRadius: 20,
+    overflow: 'hidden',
   },
   previewImage: {
     width: '100%',
-    height: 300,
-    resizeMode: 'cover',
+    height: 280,
+    borderRadius: 20,
+  },
+  scannerLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 3,
+    top: 0,
+  },
+  scannerLineGradient: {
+    flex: 1,
+  },
+  corner: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderColor: COLORS.primary,
+  },
+  cornerTL: {
+    top: 12,
+    left: 12,
+    borderTopWidth: 3,
+    borderLeftWidth: 3,
+    borderTopLeftRadius: 8,
+  },
+  cornerTR: {
+    top: 12,
+    right: 12,
+    borderTopWidth: 3,
+    borderRightWidth: 3,
+    borderTopRightRadius: 8,
+  },
+  cornerBL: {
+    bottom: 12,
+    left: 12,
+    borderBottomWidth: 3,
+    borderLeftWidth: 3,
+    borderBottomLeftRadius: 8,
+  },
+  cornerBR: {
+    bottom: 12,
+    right: 12,
+    borderBottomWidth: 3,
+    borderRightWidth: 3,
+    borderBottomRightRadius: 8,
   },
   imageActions: {
     flexDirection: 'row',
-    padding: 15,
-    gap: 10,
+    gap: SPACING.md,
+    marginTop: SPACING.lg,
   },
   analyzeButton: {
     flex: 1,
-    backgroundColor: '#059669',
+    borderRadius: 14,
+    overflow: 'hidden',
+    ...SHADOWS.glow,
+  },
+  analyzeButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: 10,
-    gap: 8,
+    gap: SPACING.sm,
   },
   analyzeButtonText: {
-    fontSize: 15,
+    fontSize: FONTS.body,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#fff',
   },
-  resetButton: {
-    flexDirection: 'row',
+  removeButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: 'rgba(248, 113, 113, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(248, 113, 113, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#ef4444',
-    gap: 8,
-  },
-  resetButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#ef4444',
   },
   loadingSection: {
-    padding: 40,
-    alignItems: 'center',
+    marginBottom: SPACING.xl,
   },
-  loadingText: {
-    fontSize: 18,
+  loadingCard: {
+    alignItems: 'center',
+    borderRadius: 28,
+  },
+  loadingSpinner: {
+    marginBottom: SPACING.md,
+  },
+  loadingTitle: {
+    fontSize: FONTS.h4,
     fontWeight: '600',
-    color: '#1f2937',
-    marginTop: 20,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
   },
   loadingSubtext: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginTop: 8,
+    fontSize: FONTS.bodySmall,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.md,
+  },
+  loadingDots: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  loadingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.primary,
+    opacity: 0.5,
   },
   resultSection: {
-    padding: 20,
+    marginBottom: SPACING.xl,
   },
   resultCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 28,
   },
   resultHeader: {
     alignItems: 'center',
-    paddingVertical: 10,
+    marginBottom: SPACING.lg,
+  },
+  successIcon: {
+    marginBottom: SPACING.sm,
   },
   resultTitle: {
-    fontSize: 24,
+    fontSize: FONTS.h3,
     fontWeight: 'bold',
-    color: '#1f2937',
-    marginTop: 12,
+    color: COLORS.textPrimary,
   },
   resultContent: {
-    marginTop: 20,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: 16,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
   },
   resultRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   resultLabel: {
-    fontSize: 14,
-    color: '#6b7280',
-    fontWeight: '500',
+    fontSize: FONTS.bodySmall,
+    color: COLORS.textSecondary,
   },
   resultValue: {
-    fontSize: 14,
-    color: '#1f2937',
+    fontSize: FONTS.body,
     fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  confidenceBadge: {
+    backgroundColor: 'rgba(74, 222, 128, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  confidenceText: {
+    fontSize: FONTS.bodySmall,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
   newPestBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fef3c7',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-    marginTop: 15,
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: SPACING.sm,
+    marginTop: SPACING.md,
   },
   newPestText: {
-    fontSize: 12,
-    color: '#92400e',
+    fontSize: FONTS.caption,
     fontWeight: '600',
+    color: '#fbbf24',
   },
   resultMessage: {
-    fontSize: 14,
-    color: '#059669',
-    fontWeight: '500',
-    marginTop: 15,
+    fontSize: FONTS.bodySmall,
+    color: COLORS.primary,
     textAlign: 'center',
+    marginTop: SPACING.md,
+    fontWeight: '500',
+  },
+  resultActions: {
+    gap: SPACING.md,
   },
   detailButton: {
-    backgroundColor: '#059669',
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...SHADOWS.glow,
+  },
+  detailButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 20,
-    gap: 8,
+    gap: SPACING.sm,
   },
   detailButtonText: {
-    fontSize: 16,
+    fontSize: FONTS.body,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#fff',
   },
-  analyzeAnotherButton: {
+  retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    marginTop: 12,
-    gap: 8,
+    gap: SPACING.sm,
   },
-  analyzeAnotherText: {
-    fontSize: 15,
+  retryButtonText: {
+    fontSize: FONTS.body,
     fontWeight: '600',
-    color: '#059669',
+    color: COLORS.primary,
   },
 });
-
-

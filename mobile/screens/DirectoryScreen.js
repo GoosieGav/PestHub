@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,29 +10,171 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PESTS, getThreatColor, getThreatLabel } from '../pests';
 import { pestAPI } from '../services/api';
+import { COLORS, GRADIENTS, SHADOWS, SPACING, FONTS } from '../theme';
+
+const { width } = Dimensions.get('window');
+
+// Glass Card Component
+const GlassCard = ({ children, style, onPress }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    if (!onPress) return;
+    Animated.spring(scaleAnim, {
+      toValue: 0.96,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    if (!onPress) return;
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const content = (
+    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
+      <BlurView intensity={15} tint="dark" style={[styles.glassCard, style]}>
+        <LinearGradient
+          colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)']}
+          style={styles.glassGradient}
+        >
+          {children}
+        </LinearGradient>
+      </BlurView>
+    </Animated.View>
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={onPress}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
+};
+
+// Pest Card Component
+const PestCard = ({ pest, onPress, index }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        delay: index * 50,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const threatColor = getThreatColor(pest.threatLevel);
+
+  return (
+    <Animated.View
+      style={[
+        styles.pestCardContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+    >
+      <GlassCard style={styles.pestCard} onPress={onPress}>
+        <View style={styles.pestImageContainer}>
+          <Image
+            source={{ uri: pest.image }}
+            style={styles.pestImage}
+            resizeMode="cover"
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.6)']}
+            style={styles.imageOverlay}
+          />
+          <View style={[styles.threatBadge, { backgroundColor: threatColor }]}>
+            <Ionicons name="warning" size={10} color="#fff" />
+            <Text style={styles.threatText}>
+              {pest.threatLevel.charAt(0).toUpperCase() + pest.threatLevel.slice(1)}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.pestContent}>
+          <Text style={styles.pestName} numberOfLines={1}>{pest.name}</Text>
+          <Text style={styles.pestScientific} numberOfLines={1}>
+            {pest.scientificName}
+          </Text>
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryText}>{pest.category}</Text>
+          </View>
+          <Text style={styles.pestDescription} numberOfLines={2}>
+            {pest.description}
+          </Text>
+        </View>
+      </GlassCard>
+    </Animated.View>
+  );
+};
 
 export default function DirectoryScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedThreat, setSelectedThreat] = useState('');
   const [customSearchModal, setCustomSearchModal] = useState(false);
   const [customSearchQuery, setCustomSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [customResult, setCustomResult] = useState(null);
 
+  // Animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   const filterPests = () => {
     return PESTS.filter(pest => {
       const matchesSearch = pest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           pest.scientificName.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = !selectedCategory || 
-                            pest.category.toLowerCase().includes(selectedCategory.toLowerCase());
-      const matchesThreat = !selectedThreat || pest.threatLevel === selectedThreat;
-      
-      return matchesSearch && matchesCategory && matchesThreat;
+      return matchesSearch;
     });
   };
 
@@ -76,123 +218,135 @@ export default function DirectoryScreen({ navigation }) {
     setCustomResult(null);
   };
 
-  const resetFilters = () => {
-    setSearchQuery('');
-    setSelectedCategory('');
-    setSelectedThreat('');
-  };
-
   return (
     <View style={styles.container}>
+      {/* Background */}
+      <LinearGradient
+        colors={GRADIENTS.primary}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
+
+      {/* Glow Effects */}
+      <View style={styles.glowTop} />
+      <View style={styles.glowBottom} />
+
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Pest Directory</Text>
-        <Text style={styles.subtitle}>
-          Browse our curated database or search for any pest by name
-        </Text>
-        
-        {/* Stats */}
-        <View style={styles.stats}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{PESTS.length}</Text>
-            <Text style={styles.statLabel}>Curated Pests</Text>
+      <Animated.View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top + 20,
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
+        <View style={styles.headerContent}>
+          <View style={styles.headerIcon}>
+            <Ionicons name="library" size={28} color={COLORS.primary} />
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>100%</Text>
-            <Text style={styles.statLabel}>AI Powered</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>∞</Text>
-            <Text style={styles.statLabel}>Custom Search</Text>
+          <Text style={styles.title}>Pest Library</Text>
+          <Text style={styles.subtitle}>
+            Browse our database or search for any pest
+          </Text>
+
+          {/* Stats */}
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{PESTS.length}</Text>
+              <Text style={styles.statLabel}>Curated</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>100%</Text>
+              <Text style={styles.statLabel}>AI Powered</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>∞</Text>
+              <Text style={styles.statLabel}>Custom</Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Search Bar */}
-      <View style={styles.searchSection}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#9ca3af" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search pests..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <BlurView intensity={20} tint="dark" style={styles.searchBar}>
+            <LinearGradient
+              colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.03)']}
+              style={styles.searchGradient}
+            >
+              <Ionicons name="search" size={20} color={COLORS.textMuted} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search pests..."
+                placeholderTextColor={COLORS.textMuted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
+                </TouchableOpacity>
+              )}
+            </LinearGradient>
+          </BlurView>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.customSearchButton}
+              activeOpacity={0.8}
+              onPress={() => setCustomSearchModal(true)}
+            >
+              <LinearGradient
+                colors={GRADIENTS.button}
+                style={styles.customSearchGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Ionicons name="sparkles" size={16} color="#fff" />
+                <Text style={styles.customSearchText}>AI Search</Text>
+              </LinearGradient>
             </TouchableOpacity>
-          )}
+
+            <TouchableOpacity
+              style={styles.resetButton}
+              activeOpacity={0.8}
+              onPress={() => setSearchQuery('')}
+            >
+              <Ionicons name="refresh" size={16} color={COLORS.danger} />
+              <Text style={styles.resetText}>Reset</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Filter Buttons */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filterScroll}
-        >
-          <TouchableOpacity
-            style={styles.customSearchButton}
-            onPress={() => setCustomSearchModal(true)}
-          >
-            <Ionicons name="sparkles" size={16} color="#ffffff" />
-            <Text style={styles.customSearchButtonText}>Custom Search</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.resetButton}
-            onPress={resetFilters}
-          >
-            <Ionicons name="refresh" size={16} color="#ef4444" />
-            <Text style={styles.resetButtonText}>Reset</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
-
-      {/* Results Count */}
-      <View style={styles.resultsHeader}>
-        <Text style={styles.resultsCount}>
-          Showing {filteredPests.length} pest{filteredPests.length !== 1 ? 's' : ''}
-        </Text>
-      </View>
+        <View style={styles.resultsHeader}>
+          <Text style={styles.resultsCount}>
+            Showing {filteredPests.length} pest{filteredPests.length !== 1 ? 's' : ''}
+          </Text>
+        </View>
+      </Animated.View>
 
       {/* Pest Grid */}
-      <ScrollView 
-        style={styles.pestList}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.pestGrid}>
-          {filteredPests.map((pest) => (
-            <TouchableOpacity
+          {filteredPests.map((pest, index) => (
+            <PestCard
               key={pest.id}
-              style={styles.pestCard}
+              pest={pest}
+              index={index}
               onPress={() => navigation.navigate('PestDetail', { pest })}
-            >
-              <View style={styles.pestImageSection}>
-                <Image 
-                  source={{ uri: pest.image }}
-                  style={styles.pestImage}
-                  resizeMode="cover"
-                />
-                <View style={[styles.threatBadge, { backgroundColor: getThreatColor(pest.threatLevel) }]}>
-                  <Ionicons name="warning" size={12} color="#ffffff" />
-                  <Text style={styles.threatText}>
-                    {pest.threatLevel.charAt(0).toUpperCase() + pest.threatLevel.slice(1)}
-                  </Text>
-                </View>
-              </View>
-              
-              <View style={styles.pestContent}>
-                <Text style={styles.pestName}>{pest.name}</Text>
-                <Text style={styles.pestScientific}>{pest.scientificName}</Text>
-                <Text style={styles.pestCategory}>{pest.category}</Text>
-                <Text style={styles.pestDescription} numberOfLines={2}>
-                  {pest.description}
-                </Text>
-              </View>
-            </TouchableOpacity>
+            />
           ))}
         </View>
+        <View style={{ height: 120 }} />
       </ScrollView>
 
       {/* Custom Search Modal */}
@@ -203,80 +357,101 @@ export default function DirectoryScreen({ navigation }) {
         onRequestClose={closeCustomSearchModal}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                <Ionicons name="sparkles" size={20} color="#059669" /> Custom Pest Search
-              </Text>
-              <TouchableOpacity onPress={closeCustomSearchModal}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            
-            <Text style={styles.modalDescription}>
-              Search for any pest by name - agricultural, household, or garden.
-            </Text>
-            
-            <View style={styles.modalInputContainer}>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Enter pest name (e.g., 'Mosquitoes', 'Silverfish')..."
-                value={customSearchQuery}
-                onChangeText={setCustomSearchQuery}
-                autoFocus
-              />
-              <TouchableOpacity
-                style={styles.modalSearchButton}
-                onPress={handleCustomSearch}
-                disabled={isSearching}
-              >
-                {isSearching ? (
-                  <ActivityIndicator color="#ffffff" />
-                ) : (
-                  <>
-                    <Ionicons name="search" size={20} color="#ffffff" />
-                    <Text style={styles.modalSearchButtonText}>Search</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-            
-            {customResult && (
-              <View style={styles.customResultCard}>
-                <View style={styles.customResultHeader}>
-                  <Ionicons name="checkmark-circle" size={32} color="#10b981" />
-                  <Text style={styles.customResultTitle}>Pest Found!</Text>
+          <BlurView intensity={40} tint="dark" style={styles.modalBlur}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <View style={styles.modalHeaderLeft}>
+                  <Ionicons name="sparkles" size={24} color={COLORS.primary} />
+                  <Text style={styles.modalTitle}>AI Search</Text>
                 </View>
-                
-                <Text style={styles.customResultName}>{customResult.name}</Text>
-                <Text style={styles.customResultScientific}>{customResult.scientific_name}</Text>
-                <Text style={styles.customResultDescription}>{customResult.description}</Text>
-                
-                <View style={styles.customResultBadges}>
-                  <View style={[styles.badge, { backgroundColor: getThreatColor(customResult.threat_level) }]}>
-                    <Text style={styles.badgeText}>{getThreatLabel(customResult.threat_level)}</Text>
-                  </View>
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{customResult.category}</Text>
-                  </View>
-                </View>
-                
-                <TouchableOpacity
-                  style={styles.viewDetailsButton}
-                  onPress={() => {
-                    closeCustomSearchModal();
-                    navigation.navigate('PestDetail', { 
-                      customPest: customResult,
-                      infoUrl: customResult.info_url,
-                    });
-                  }}
-                >
-                  <Text style={styles.viewDetailsButtonText}>View Full Information</Text>
-                  <Ionicons name="arrow-forward" size={18} color="#ffffff" />
+                <TouchableOpacity onPress={closeCustomSearchModal}>
+                  <Ionicons name="close-circle" size={28} color={COLORS.textMuted} />
                 </TouchableOpacity>
               </View>
-            )}
-          </View>
+
+              <Text style={styles.modalDescription}>
+                Search for any pest by name - agricultural, household, or garden.
+              </Text>
+
+              <View style={styles.modalInputContainer}>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter pest name (e.g., 'Mosquitoes')..."
+                  placeholderTextColor={COLORS.textMuted}
+                  value={customSearchQuery}
+                  onChangeText={setCustomSearchQuery}
+                  autoFocus
+                />
+                <TouchableOpacity
+                  style={styles.modalSearchButton}
+                  onPress={handleCustomSearch}
+                  disabled={isSearching}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={GRADIENTS.button}
+                    style={styles.modalSearchGradient}
+                  >
+                    {isSearching ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <Ionicons name="search" size={20} color="#fff" />
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+
+              {customResult && (
+                <GlassCard style={styles.customResultCard}>
+                  <View style={styles.customResultHeader}>
+                    <Ionicons name="checkmark-circle" size={32} color={COLORS.success} />
+                    <Text style={styles.customResultTitle}>Pest Found!</Text>
+                  </View>
+
+                  <Text style={styles.customResultName}>{customResult.name}</Text>
+                  <Text style={styles.customResultScientific}>
+                    {customResult.scientific_name}
+                  </Text>
+                  <Text style={styles.customResultDescription} numberOfLines={3}>
+                    {customResult.description}
+                  </Text>
+
+                  <View style={styles.customResultBadges}>
+                    <View style={[styles.badge, { backgroundColor: getThreatColor(customResult.threat_level) }]}>
+                      <Text style={styles.badgeText}>
+                        {getThreatLabel(customResult.threat_level)}
+                      </Text>
+                    </View>
+                    <View style={styles.badgeOutline}>
+                      <Text style={styles.badgeTextOutline}>{customResult.category}</Text>
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.viewDetailsButton}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      closeCustomSearchModal();
+                      navigation.navigate('PestDetail', {
+                        customPest: customResult,
+                        infoUrl: customResult.info_url,
+                      });
+                    }}
+                  >
+                    <LinearGradient
+                      colors={GRADIENTS.button}
+                      style={styles.viewDetailsGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                    >
+                      <Text style={styles.viewDetailsText}>View Full Information</Text>
+                      <Ionicons name="arrow-forward" size={18} color="#fff" />
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </GlassCard>
+              )}
+            </View>
+          </BlurView>
         </View>
       </Modal>
     </View>
@@ -286,139 +461,189 @@ export default function DirectoryScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: COLORS.background,
+  },
+  glowTop: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(74, 222, 128, 0.12)',
+  },
+  glowBottom: {
+    position: 'absolute',
+    bottom: 150,
+    left: -80,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(96, 165, 250, 0.08)',
   },
   header: {
-    backgroundColor: '#ffffff',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.md,
+  },
+  headerContent: {
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  headerIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(74, 222, 128, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
   },
   title: {
-    fontSize: 24,
+    fontSize: FONTS.h2,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: COLORS.textPrimary,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginTop: 6,
+    fontSize: FONTS.bodySmall,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
+    textAlign: 'center',
   },
-  stats: {
+  statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 20,
+    alignItems: 'center',
+    marginTop: SPACING.lg,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xl,
   },
   statItem: {
     alignItems: 'center',
+    flex: 1,
   },
-  statNumber: {
-    fontSize: 24,
+  statValue: {
+    fontSize: FONTS.h3,
     fontWeight: 'bold',
-    color: '#059669',
+    color: COLORS.primary,
   },
   statLabel: {
-    fontSize: 11,
-    color: '#6b7280',
-    marginTop: 4,
+    fontSize: FONTS.tiny,
+    color: COLORS.textMuted,
+    marginTop: 2,
   },
-  searchSection: {
-    backgroundColor: '#ffffff',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+  statDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginHorizontal: SPACING.md,
+  },
+  searchContainer: {
+    gap: SPACING.md,
   },
   searchBar: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.glassBorder,
+  },
+  searchGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    gap: 10,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 14,
+    gap: SPACING.sm,
   },
   searchInput: {
     flex: 1,
-    fontSize: 15,
-    color: '#1f2937',
+    fontSize: FONTS.body,
+    color: COLORS.textPrimary,
   },
-  filterScroll: {
-    marginTop: 12,
+  actionButtons: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
   },
   customSearchButton: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  customSearchGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#059669',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginRight: 10,
-    gap: 6,
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: SPACING.xs,
   },
-  customSearchButtonText: {
-    fontSize: 13,
+  customSearchText: {
+    fontSize: FONTS.bodySmall,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#fff',
   },
   resetButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 1.5,
-    borderColor: '#ef4444',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 6,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(248, 113, 113, 0.3)',
+    backgroundColor: 'rgba(248, 113, 113, 0.1)',
+    gap: SPACING.xs,
   },
-  resetButtonText: {
-    fontSize: 13,
+  resetText: {
+    fontSize: FONTS.bodySmall,
     fontWeight: '600',
-    color: '#ef4444',
+    color: COLORS.danger,
   },
   resultsHeader: {
-    padding: 15,
-    backgroundColor: '#ffffff',
+    marginTop: SPACING.md,
   },
   resultsCount: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontSize: FONTS.caption,
+    color: COLORS.textSecondary,
   },
-  pestList: {
+  scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.md,
+  },
   pestGrid: {
-    padding: 15,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    gap: SPACING.md,
+  },
+  pestCardContainer: {
+    width: (width - SPACING.lg * 2 - SPACING.md) / 2,
+  },
+  glassCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.glassBorder,
+  },
+  glassGradient: {
+    padding: 0,
   },
   pestCard: {
-    width: '48%',
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: 20,
   },
-  pestImageSection: {
-    position: 'relative',
+  pestImageContainer: {
     height: 120,
-    backgroundColor: '#f3f4f6',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: 'relative',
   },
   pestImage: {
     width: '100%',
     height: '100%',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+  },
+  imageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
   },
   threatBadge: {
     position: 'absolute',
@@ -428,165 +653,187 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6,
-    gap: 4,
+    borderRadius: 8,
+    gap: 3,
   },
   threatText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#fff',
   },
   pestContent: {
-    padding: 12,
+    padding: SPACING.md,
   },
   pestName: {
-    fontSize: 16,
+    fontSize: FONTS.body,
     fontWeight: '600',
-    color: '#1f2937',
+    color: COLORS.textPrimary,
   },
   pestScientific: {
-    fontSize: 12,
+    fontSize: FONTS.tiny,
     fontStyle: 'italic',
-    color: '#6b7280',
+    color: COLORS.textMuted,
     marginTop: 2,
   },
-  pestCategory: {
-    fontSize: 10,
-    color: '#059669',
+  categoryBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(74, 222, 128, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginTop: SPACING.sm,
+  },
+  categoryText: {
+    fontSize: 9,
     fontWeight: '600',
-    marginTop: 6,
+    color: COLORS.primary,
     textTransform: 'uppercase',
   },
   pestDescription: {
-    fontSize: 11,
-    color: '#6b7280',
-    marginTop: 6,
-    lineHeight: 16,
+    fontSize: FONTS.tiny,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.sm,
+    lineHeight: 15,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+  },
+  modalBlur: {
+    width: '90%',
+    maxWidth: 400,
+    borderRadius: 28,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.glassBorder,
   },
   modalContent: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    width: '100%',
-    maxHeight: '80%',
+    padding: SPACING.xl,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: SPACING.md,
+  },
+  modalHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontSize: FONTS.h4,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
   },
   modalDescription: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginBottom: 20,
+    fontSize: FONTS.bodySmall,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.lg,
+    lineHeight: 20,
   },
   modalInputContainer: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 20,
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
   },
   modalInput: {
     flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    fontSize: 14,
+    borderColor: COLORS.glassBorder,
+    borderRadius: 14,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 14,
+    fontSize: FONTS.bodySmall,
+    color: COLORS.textPrimary,
   },
   modalSearchButton: {
-    backgroundColor: '#059669',
-    flexDirection: 'row',
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  modalSearchGradient: {
+    width: 52,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    gap: 6,
-  },
-  modalSearchButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#ffffff',
   },
   customResultCard: {
-    backgroundColor: '#f0fdf4',
-    padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#bbf7d0',
+    borderRadius: 20,
+    marginTop: SPACING.md,
   },
   customResultHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 15,
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   customResultTitle: {
-    fontSize: 18,
+    fontSize: FONTS.h4,
     fontWeight: 'bold',
-    color: '#166534',
+    color: COLORS.success,
   },
   customResultName: {
-    fontSize: 20,
+    fontSize: FONTS.h4,
     fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 4,
+    color: COLORS.textPrimary,
   },
   customResultScientific: {
-    fontSize: 14,
+    fontSize: FONTS.caption,
     fontStyle: 'italic',
-    color: '#6b7280',
-    marginBottom: 12,
+    color: COLORS.textMuted,
+    marginTop: 2,
   },
   customResultDescription: {
-    fontSize: 13,
-    color: '#4b5563',
+    fontSize: FONTS.bodySmall,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.md,
     lineHeight: 20,
-    marginBottom: 15,
   },
   customResultBadges: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 15,
+    gap: SPACING.sm,
+    marginTop: SPACING.md,
   },
   badge: {
-    backgroundColor: '#d1d5db',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: 8,
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: FONTS.caption,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#fff',
+  },
+  badgeOutline: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.glassBorder,
+  },
+  badgeTextOutline: {
+    fontSize: FONTS.caption,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
   },
   viewDetailsButton: {
-    backgroundColor: '#059669',
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginTop: SPACING.lg,
+  },
+  viewDetailsGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 10,
-    gap: 8,
+    paddingVertical: 14,
+    gap: SPACING.sm,
   },
-  viewDetailsButtonText: {
-    fontSize: 14,
+  viewDetailsText: {
+    fontSize: FONTS.bodySmall,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#fff',
   },
 });
-
-
