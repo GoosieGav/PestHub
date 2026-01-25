@@ -415,7 +415,7 @@ export default function LandingScreen({ navigation }) {
                 colors={['rgba(74, 222, 128, 0.4)', 'rgba(74, 222, 128, 0.1)']}
                 style={styles.logoGlow}
               />
-              <BlurView intensity={20} tint="dark" style={styles.logoBlur}>
+              <View style={styles.logoBlur}>
                 <View style={styles.logoInner}>
                   <Image 
                     source={require('../assets/logo.png')} 
@@ -423,7 +423,7 @@ export default function LandingScreen({ navigation }) {
                     resizeMode="contain"
                   />
                 </View>
-              </BlurView>
+              </View>
             </View>
           </Animated.View>
 
@@ -563,8 +563,9 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 45,
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(74, 222, 128, 0.3)',
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logoInner: {
     flex: 1,

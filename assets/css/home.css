@@ -230,7 +230,7 @@
 .feature-icon {
     width: 70px;
     height: 70px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: transparent;
     border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
@@ -238,7 +238,13 @@
     color: white;
     font-size: 2rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.2);
+    box-shadow: none;
+}
+
+.feature-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .feature-content {
