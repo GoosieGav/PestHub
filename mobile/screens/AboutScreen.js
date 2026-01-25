@@ -179,7 +179,11 @@ export default function AboutScreen() {
               style={styles.logoGlow}
             />
             <View style={styles.logoInner}>
-              <Ionicons name="leaf" size={40} color={COLORS.primary} />
+              <Image 
+                source={require('../assets/logo.png')} 
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
           </Animated.View>
           <Text style={styles.title}>About PEST-Hub</Text>
@@ -297,7 +301,11 @@ export default function AboutScreen() {
         {/* Footer */}
         <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
           <View style={styles.footerLogo}>
-            <Ionicons name="leaf-outline" size={32} color={COLORS.textMuted} />
+            <Image 
+              source={require('../assets/logo.png')} 
+              style={styles.footerLogoImage}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.footerTitle}>PEST-Hub Mobile</Text>
           <Text style={styles.footerSubtitle}>AI-Powered Pest Detection</Text>
@@ -571,6 +579,12 @@ const styles = StyleSheet.create({
   },
   footerLogo: {
     marginBottom: SPACING.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footerLogoImage: {
+    width: 32,
+    height: 32,
   },
   footerTitle: {
     fontSize: FONTS.h4,

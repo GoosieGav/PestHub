@@ -256,7 +256,11 @@ export default function HomeScreen({ navigation }) {
               style={styles.logoGlow}
             />
             <View style={styles.logoInner}>
-              <Ionicons name="leaf" size={48} color={COLORS.primary} />
+              <Image 
+                source={require('../assets/logo.png')} 
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
           </Animated.View>
           
