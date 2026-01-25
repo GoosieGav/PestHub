@@ -7,6 +7,7 @@ import {
   Animated,
   Dimensions,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -181,7 +182,7 @@ export default function AboutScreen() {
               <Ionicons name="leaf" size={40} color={COLORS.primary} />
             </View>
           </Animated.View>
-          <Text style={styles.title}>About PestHub</Text>
+          <Text style={styles.title}>About PEST-Hub</Text>
           <Text style={styles.subtitle}>AI-powered pest detection for modern agriculture</Text>
         </Animated.View>
 
@@ -189,7 +190,7 @@ export default function AboutScreen() {
         <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
           <GlassCard style={styles.introCard}>
             <Text style={styles.introText}>
-              PestHub Mobile uses Google's Gemini AI to provide instant, accurate pest identification 
+              PEST-Hub Mobile uses Google's Gemini AI to provide instant, accurate pest identification 
               directly from your smartphone. Our advanced system analyzes images in real-time to help 
               farmers, gardeners, and agricultural professionals protect their crops.
             </Text>
@@ -298,7 +299,7 @@ export default function AboutScreen() {
           <View style={styles.footerLogo}>
             <Ionicons name="leaf-outline" size={32} color={COLORS.textMuted} />
           </View>
-          <Text style={styles.footerTitle}>PestHub Mobile</Text>
+          <Text style={styles.footerTitle}>PEST-Hub Mobile</Text>
           <Text style={styles.footerSubtitle}>AI-Powered Pest Detection</Text>
           <Text style={styles.footerVersion}>Version 1.0.0</Text>
         </Animated.View>
@@ -361,6 +362,10 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  logoImage: {
+    width: 40,
+    height: 40,
   },
   title: {
     fontSize: FONTS.h2,

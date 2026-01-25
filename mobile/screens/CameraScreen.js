@@ -37,7 +37,7 @@ export default function CameraScreen({ navigation, route }) {
         <Ionicons name="camera-outline" size={64} color="#9ca3af" />
         <Text style={styles.permissionText}>Camera Permission Required</Text>
         <Text style={styles.permissionDescription}>
-          PestHub needs access to your camera to take photos of pests for identification.
+          PEST-Hub needs access to your camera to take photos of pests for identification.
         </Text>
         <TouchableOpacity
           style={styles.permissionButton}

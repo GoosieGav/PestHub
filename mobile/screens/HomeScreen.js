@@ -8,6 +8,7 @@ import {
   Dimensions,
   Animated,
   ImageBackground,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -260,7 +261,7 @@ export default function HomeScreen({ navigation }) {
           </Animated.View>
           
           <Text style={styles.welcomeText}>Welcome to</Text>
-          <Text style={styles.titleText}>PestHub</Text>
+          <Text style={styles.titleText}>PEST-Hub</Text>
           <Text style={styles.subtitleText}>
             AI-powered pest detection for modern agriculture
           </Text>
@@ -397,7 +398,11 @@ export default function HomeScreen({ navigation }) {
         <Animated.View style={[styles.ctaSection, { opacity: fadeAnim }]}>
           <GlassCard style={styles.ctaCard}>
             <View style={styles.ctaIconContainer}>
-              <Ionicons name="leaf" size={40} color={COLORS.primary} />
+              <Image 
+                source={require('../assets/logo.png')} 
+                style={{ width: 40, height: 40 }}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.ctaTitle}>Ready to Identify Pests?</Text>
             <Text style={styles.ctaDescription}>
@@ -423,7 +428,7 @@ export default function HomeScreen({ navigation }) {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>PestHub Mobile • AI-Powered Detection</Text>
+          <Text style={styles.footerText}>PEST-Hub Mobile • AI-Powered Detection</Text>
         </View>
       </ScrollView>
     </View>
@@ -500,6 +505,14 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  logoImage: {
+    width: 48,
+    height: 48,
+  },
+  logoImage: {
+    width: 48,
+    height: 48,
   },
   welcomeText: {
     fontSize: FONTS.body,

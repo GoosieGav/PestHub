@@ -9,6 +9,7 @@ import {
   ImageBackground,
   TouchableOpacity,
   ScrollView,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -416,7 +417,11 @@ export default function LandingScreen({ navigation }) {
               />
               <BlurView intensity={20} tint="dark" style={styles.logoBlur}>
                 <View style={styles.logoInner}>
-                  <Ionicons name="leaf" size={50} color={COLORS.primary} />
+                  <Image 
+                    source={require('../assets/logo.png')} 
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                  />
                 </View>
               </BlurView>
             </View>
@@ -432,7 +437,7 @@ export default function LandingScreen({ navigation }) {
               },
             ]}
           >
-            <Text style={styles.appName}>PestHub</Text>
+            <Text style={styles.appName}>PEST-Hub</Text>
             <View style={styles.taglineContainer}>
               <View style={styles.taglineLine} />
               <Text style={styles.tagline}>AI-Powered Protection</Text>
@@ -565,6 +570,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  logoImage: {
+    width: 50,
+    height: 50,
   },
   titleSection: {
     alignItems: 'center',

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "PestHub",
+    "name": "PEST-Hub",
     "slug": "pesthub-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,8 +15,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.pesthub.mobile",
       "infoPlist": {
-        "NSCameraUsageDescription": "PestHub needs access to your camera to take photos of pests for identification.",
-        "NSPhotoLibraryUsageDescription": "PestHub needs access to your photo library to select pest images for identification."
+        "NSCameraUsageDescription": "PEST-Hub needs access to your camera to take photos of pests for identification.",
+        "NSPhotoLibraryUsageDescription": "PEST-Hub needs access to your photo library to select pest images for identification."
       }
     },
     "android": {
@@ -34,7 +34,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow PestHub to access your camera to take photos of pests."
+          "cameraPermission": "Allow PEST-Hub to access your camera to take photos of pests."
         }
       ]
     ],

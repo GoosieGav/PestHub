@@ -1,4 +1,4 @@
-// PestHub Premium Theme - Glassmorphic Dark Green Aesthetic
+// PEST-Hub Premium Theme - Glassmorphic Dark Green Aesthetic
 import { Dimensions } from 'react-native';
 
 const { width, height } = Dimensions.get('window');

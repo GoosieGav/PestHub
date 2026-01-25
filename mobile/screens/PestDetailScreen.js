@@ -330,7 +330,7 @@ export default function PestDetailScreen({ route, navigation }) {
         {/* Footer */}
         <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
           <Ionicons name="leaf-outline" size={24} color={COLORS.textMuted} />
-          <Text style={styles.footerText}>PestHub • AI-Powered Detection</Text>
+          <Text style={styles.footerText}>PEST-Hub • AI-Powered Detection</Text>
         </Animated.View>
       </ScrollView>
     </View>
