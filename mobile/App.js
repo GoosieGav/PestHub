@@ -61,16 +61,16 @@ function CustomTabBar({ state, descriptors, navigation }) {
 
               const isFocused = state.index === index;
 
-              let iconName;
-              if (route.name === 'Home') {
+          let iconName;
+          if (route.name === 'Home') {
                 iconName = isFocused ? 'home' : 'home-outline';
-              } else if (route.name === 'Classify') {
+          } else if (route.name === 'Classify') {
                 iconName = isFocused ? 'scan' : 'scan-outline';
-              } else if (route.name === 'Directory') {
+          } else if (route.name === 'Directory') {
                 iconName = isFocused ? 'library' : 'library-outline';
-              } else if (route.name === 'About') {
+          } else if (route.name === 'About') {
                 iconName = isFocused ? 'information-circle' : 'information-circle-outline';
-              }
+          }
 
               const onPress = () => {
                 const event = navigation.emit({
@@ -185,7 +185,7 @@ export default function App() {
           />
           <Stack.Screen 
             name="Main" 
-            component={TabNavigator}
+            component={TabNavigator} 
             options={{
               animation: 'fade',
             }}

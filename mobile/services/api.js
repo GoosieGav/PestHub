@@ -8,7 +8,7 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 90000, // 90 seconds for AI processing
   headers: {
     'Content-Type': 'application/json',
   },
@@ -51,7 +51,7 @@ export const pestAPI = {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 30000,
+        timeout: 90000, // 90 seconds for AI image processing
       });
 
       return { success: true, data: response.data };

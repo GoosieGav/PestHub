@@ -125,11 +125,11 @@ export default function PestDetailScreen({ route, navigation }) {
           colors={GRADIENTS.primary}
           style={StyleSheet.absoluteFill}
         />
-        <View style={styles.errorContainer}>
+      <View style={styles.errorContainer}>
           <View style={styles.errorIcon}>
             <Ionicons name="bug-outline" size={64} color={COLORS.textMuted} />
           </View>
-          <Text style={styles.errorText}>Pest information not available</Text>
+        <Text style={styles.errorText}>Pest information not available</Text>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
@@ -197,46 +197,46 @@ export default function PestDetailScreen({ route, navigation }) {
         >
           {/* Image */}
           <View style={styles.imageContainer}>
-            <Image
-              source={{ uri: pestData.image }}
-              style={styles.pestImage}
-              resizeMode="cover"
-            />
+          <Image 
+            source={{ uri: pestData.image }}
+            style={styles.pestImage}
+            resizeMode="cover"
+          />
             <LinearGradient
               colors={['transparent', 'rgba(13, 40, 24, 0.8)']}
               style={styles.imageGradient}
             />
             
             {/* AI Badge */}
-            {customPest && (
-              <View style={styles.aiBadge}>
+          {customPest && (
+            <View style={styles.aiBadge}>
                 <LinearGradient
                   colors={GRADIENTS.button}
                   style={styles.aiBadgeGradient}
                 >
                   <Ionicons name="sparkles" size={14} color="#fff" />
-                  <Text style={styles.aiBadgeText}>AI Generated</Text>
+              <Text style={styles.aiBadgeText}>AI Generated</Text>
                 </LinearGradient>
-              </View>
-            )}
-          </View>
-
+            </View>
+          )}
+        </View>
+        
           {/* Info */}
           <View style={styles.heroContent}>
-            <Text style={styles.pestName}>{pestData.name}</Text>
+          <Text style={styles.pestName}>{pestData.name}</Text>
             <Text style={styles.scientificName}>
               {pestData.scientificName || pestData.scientific_name}
             </Text>
-
+          
             {/* Badges */}
-            <View style={styles.badgesRow}>
+          <View style={styles.badgesRow}>
               <View style={[styles.threatBadge, { backgroundColor: threatColor }]}>
                 <Ionicons name="warning" size={16} color="#fff" />
                 <Text style={styles.threatBadgeText}>
                   {getThreatLabel(threatLevel)}
-                </Text>
-              </View>
-              <View style={styles.categoryBadge}>
+              </Text>
+            </View>
+            <View style={styles.categoryBadge}>
                 <Ionicons name="pricetag" size={16} color={COLORS.primary} />
                 <Text style={styles.categoryBadgeText}>{pestData.category}</Text>
               </View>
@@ -244,7 +244,7 @@ export default function PestDetailScreen({ route, navigation }) {
           </View>
         </Animated.View>
 
-        {/* Description */}
+      {/* Description */}
         <Section
           icon="information-circle"
           title="Description"
@@ -254,24 +254,24 @@ export default function PestDetailScreen({ route, navigation }) {
           <Text style={styles.descriptionText}>{pestData.description}</Text>
         </Section>
 
-        {/* Common Species */}
-        {pestData.common_species && pestData.common_species.length > 0 && (
+      {/* Common Species */}
+      {pestData.common_species && pestData.common_species.length > 0 && (
           <Section
             icon="git-network"
             title="Common Species"
             color="#60a5fa"
             delay={200}
           >
-            {pestData.common_species.map((species, index) => (
+          {pestData.common_species.map((species, index) => (
               <View key={index} style={styles.speciesItem}>
-                <Text style={styles.speciesName}>{species.name}</Text>
-                <Text style={styles.speciesDescription}>{species.description}</Text>
-              </View>
-            ))}
+              <Text style={styles.speciesName}>{species.name}</Text>
+              <Text style={styles.speciesDescription}>{species.description}</Text>
+            </View>
+          ))}
           </Section>
-        )}
+      )}
 
-        {/* Damage Symptoms */}
+      {/* Damage Symptoms */}
         {pestData.symptoms && pestData.symptoms.length > 0 && (
           <Section
             icon="warning"
@@ -281,12 +281,12 @@ export default function PestDetailScreen({ route, navigation }) {
           >
             {pestData.symptoms.map((symptom, index) => (
               <ListItem key={index} text={symptom} />
-            ))}
+          ))}
           </Section>
         )}
 
-        {/* Organic Treatment */}
-        {pestData.organic_treatment && pestData.organic_treatment.length > 0 && (
+      {/* Organic Treatment */}
+      {pestData.organic_treatment && pestData.organic_treatment.length > 0 && (
           <Section
             icon="leaf"
             title="Organic Treatment"
@@ -297,10 +297,10 @@ export default function PestDetailScreen({ route, navigation }) {
               <ListItem key={index} text={treatment} />
             ))}
           </Section>
-        )}
+      )}
 
-        {/* Chemical Treatment */}
-        {pestData.chemical_treatment && pestData.chemical_treatment.length > 0 && (
+      {/* Chemical Treatment */}
+      {pestData.chemical_treatment && pestData.chemical_treatment.length > 0 && (
           <Section
             icon="flask"
             title="Chemical Treatment"
@@ -311,10 +311,10 @@ export default function PestDetailScreen({ route, navigation }) {
               <ListItem key={index} text={treatment} />
             ))}
           </Section>
-        )}
+      )}
 
-        {/* Prevention */}
-        {pestData.prevention && pestData.prevention.length > 0 && (
+      {/* Prevention */}
+      {pestData.prevention && pestData.prevention.length > 0 && (
           <Section
             icon="shield-checkmark"
             title="Prevention Strategies"
@@ -325,7 +325,7 @@ export default function PestDetailScreen({ route, navigation }) {
               <ListItem key={index} text={strategy} />
             ))}
           </Section>
-        )}
+      )}
 
         {/* Footer */}
         <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
@@ -333,7 +333,7 @@ export default function PestDetailScreen({ route, navigation }) {
           <Text style={styles.footerText}>PEST-Hub • AI-Powered Detection</Text>
         </Animated.View>
       </ScrollView>
-    </View>
+      </View>
   );
 }
 
