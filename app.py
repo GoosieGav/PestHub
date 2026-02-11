@@ -33,6 +33,14 @@ logger.info("Gemini API configured successfully")
 def public_assets(filename):
     return send_from_directory('public_assets', filename)
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(
+        os.path.join(app.root_path, 'public_assets', 'images', 'ui'),
+        'favicon.svg',
+        mimetype='image/svg+xml'
+    )
+
 @app.route('/css/<path:filename>')
 def css_assets(filename):
     return send_from_directory('assets/css', filename)

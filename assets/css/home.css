@@ -241,6 +241,14 @@
     box-shadow: 0 8px 20px rgba(5, 150, 105, 0.2);
 }
 
+.feature-icon img,
+.feature-icon-img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    display: block;
+}
+
 .feature-content {
     flex: 1;
     display: flex;
