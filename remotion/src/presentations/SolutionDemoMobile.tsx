@@ -334,8 +334,9 @@ const ClassifyScreen: React.FC<{ frame: number; fps: number }> = ({
             position: 'absolute',
             inset: 0,
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-end',
             justifyContent: 'center',
+            paddingBottom: 20,
             zIndex: 10,
             pointerEvents: 'none',
           }}
@@ -346,7 +347,7 @@ const ClassifyScreen: React.FC<{ frame: number; fps: number }> = ({
               transform: `scale(${interpolate(rp, [0, 1], [0.3, 1], { extrapolateRight: 'clamp' })})`,
             }}
           >
-            <IoCheckmarkCircle size={80} color={C.success} />
+            <IoCheckmarkCircle size={56} color={C.success} />
           </div>
         </div>
       )}
@@ -726,14 +727,15 @@ const PestDetailScreen: React.FC<{ frame: number; fps: number }> = ({
  *   85-130   Checkmark appears (standalone overlay)
  *   130-160  Hold result
  *   160-190  Cross-dissolve → pest detail
- *   190-270  Pest detail animates in, holds
+ *   190-230  Pest detail animates in
+ *   230-380  Hold final state (~5s)
  */
 export const SolutionDemoMobile: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const DISSOLVE_START = 160;
-  const DISSOLVE_END = 190;
+  const DISSOLVE_START = 190;
+  const DISSOLVE_END = 220;
 
   const classifyOpacity = interpolate(
     frame,
