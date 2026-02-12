@@ -33,6 +33,14 @@ ENV/
 .vscode/
 *.swp
 
+# Remotion
+remotion/node_modules/
+remotion/dist/
+remotion/out/
+
+# Large files
+*.pdf
+
 # OS
 .DS_Store
 .DS_Store?

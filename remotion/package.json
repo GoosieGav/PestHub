@@ -1,0 +1,26 @@
+{
+  "name": "pesthub-remotion",
+  "version": "1.0.0",
+  "description": "Promo and demo video compositions for PEST-Hub, built with Remotion",
+  "private": true,
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion bundle",
+    "render": "remotion render PromoVideo out/pesthub-promo.mp4",
+    "upgrade": "remotion upgrade",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "remotion": "4.0.242",
+    "@remotion/cli": "4.0.242",
+    "@remotion/google-fonts": "4.0.242",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-icons": "5.4.0"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3",
+    "@types/react": "18.3.12",
+    "@types/web": "0.0.166"
+  }
+}
