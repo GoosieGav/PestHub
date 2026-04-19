@@ -1,32 +1,53 @@
 from flask import Flask, request, render_template, jsonify, url_for, send_from_directory, session
 from PIL import Image
 import io
+import base64
 import logging
 import os
-import google.generativeai as genai
-from dotenv import load_dotenv
+import subprocess
+import time
+import urllib.request
+import ollama
 import secrets
-
-# Load environment variables
-load_dotenv()
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_url_path='/static')
-app.secret_key = secrets.token_hex(32)  # Generate a secure secret key for sessions
+app.secret_key = secrets.token_hex(32)
 
-# Configure Gemini API
-api_key = os.getenv('GEMINI_API_KEY')
-if not api_key:
-    logger.error("GEMINI_API_KEY not found in environment variables")
-    raise ValueError("GEMINI_API_KEY not found in environment variables")
+OLLAMA_MODEL = 'llava-phi3'
 
-genai.configure(api_key=api_key)
-# Using gemini-2.5-flash for image and text analysis (stable multimodal model)
-model = genai.GenerativeModel('gemini-2.5-flash')
-logger.info("Gemini API configured successfully")
+
+def _ensure_ollama_running():
+    """Start Ollama if it isn't already running."""
+    try:
+        urllib.request.urlopen('http://localhost:11434/', timeout=2)
+        logger.info("Ollama already running")
+        return
+    except Exception:
+        pass
+
+    logger.info("Starting Ollama...")
+    subprocess.Popen(
+        ['ollama', 'serve'],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        env={**os.environ, 'OLLAMA_NUM_THREADS': '5', 'OLLAMA_NUM_PARALLEL': '1'},
+    )
+    for _ in range(20):
+        time.sleep(0.5)
+        try:
+            urllib.request.urlopen('http://localhost:11434/', timeout=1)
+            logger.info("Ollama started successfully")
+            return
+        except Exception:
+            pass
+    logger.warning("Ollama did not respond after 10s — AI features may fail")
+
+
+_ensure_ollama_running()
 
 # Register public_assets directory
 @app.route('/assets/<path:filename>')
@@ -724,6 +745,12 @@ pest_info = {
     }
 }
 
+def _pil_to_b64(image: Image.Image) -> str:
+    buf = io.BytesIO()
+    image.save(buf, format='JPEG', quality=95)
+    return base64.b64encode(buf.getvalue()).decode('utf-8')
+
+
 def predict_image(image_bytes):
     try:
         # Load image using PIL
@@ -760,11 +787,17 @@ DESCRIPTION: [2-3 sentence description of the pest]
 
 Be precise and accurate."""
 
-        # Call Gemini API
-        logger.info("Sending image to Gemini API for analysis")
-        response = model.generate_content([prompt, image])
-        response_text = response.text.strip()
-        logger.info(f"Gemini API response: {response_text}")
+        logger.info("Sending image to Ollama for analysis")
+        response = ollama.chat(
+            model=OLLAMA_MODEL,
+            messages=[{
+                'role': 'user',
+                'content': prompt,
+                'images': [_pil_to_b64(image)],
+            }]
+        )
+        response_text = response.message.content.strip()
+        logger.info(f"Ollama response: {response_text}")
         
         # Parse response
         is_match = False
@@ -846,8 +879,15 @@ SPECIES_3_DESC: [description]
 
 Be specific and professional. Use ||| as separator for list items."""
 
-        response = model.generate_content([prompt, image])
-        response_text = response.text.strip()
+        response = ollama.chat(
+            model=OLLAMA_MODEL,
+            messages=[{
+                'role': 'user',
+                'content': prompt,
+                'images': [_pil_to_b64(image)],
+            }]
+        )
+        response_text = response.message.content.strip()
         logger.info(f"Generated pest info for {pest_name}")
         
         # Parse the response
@@ -929,8 +969,11 @@ SPECIES_3_DESC: [description]
 
 Be specific and professional. Use ||| as separator for list items."""
 
-        response = model.generate_content(prompt)
-        response_text = response.text.strip()
+        response = ollama.chat(
+            model=OLLAMA_MODEL,
+            messages=[{'role': 'user', 'content': prompt}]
+        )
+        response_text = response.message.content.strip()
         logger.info(f"Generated pest info for {pest_name}")
         
         # Parse the response
@@ -1040,20 +1083,24 @@ def search_pest():
         # First, check if it's in our known pests
         pest_query_normalized = pest_query.title()
         if pest_query_normalized in pest_info:
-            pest_data = pest_info[pest_query_normalized]
+            known = pest_info[pest_query_normalized]
             pest_key = pest_query_normalized.lower().replace(' ', '_')
             return jsonify({
                 'is_pest': True,
                 'is_known': True,
                 'pest_data': {
-                    'name': pest_data['name'],
-                    'scientific_name': pest_data['scientific_name'],
-                    'image': pest_data['image'],
-                    'description': pest_data['description'],
-                    'symptoms': pest_data['symptoms'],
-                    'threat_level': get_threat_level(pest_data['name']),
-                    'category': get_category_display(pest_data['name']),
-                    'info_url': f'/pest/{pest_key}'
+                    'name': known['name'],
+                    'scientific_name': known['scientific_name'],
+                    'image': f"{request.host_url}assets/images/pests/{known['image']}",
+                    'description': known['description'],
+                    'symptoms': known['symptoms'],
+                    'organic_treatment': known.get('organic_treatment', []),
+                    'chemical_treatment': known.get('chemical_treatment', []),
+                    'prevention': known.get('prevention', []),
+                    'common_species': known.get('common_species', []),
+                    'threat_level': get_threat_level(known['name']),
+                    'category': get_category_display(known['name']),
+                    'info_url': f'/pest/{pest_key}',
                 }
             })
         
@@ -1070,8 +1117,11 @@ SYMPTOMS: [5 common damage symptoms or problems they cause, separated by ||| if 
 
 Respond YES if it's an insect, spider, mite, or similar creature that can be a pest. Include agricultural pests, household pests, and garden pests. Only respond NO if it's clearly not a pest at all (like a beneficial insect being asked about in a non-pest context, or not an insect/arthropod at all)."""
 
-        response = model.generate_content(prompt)
-        response_text = response.text.strip()
+        response = ollama.chat(
+            model=OLLAMA_MODEL,
+            messages=[{'role': 'user', 'content': prompt}]
+        )
+        response_text = response.message.content.strip()
         logger.info(f"Custom search for '{pest_query}': {response_text[:100]}")
         
         # Parse the response
@@ -1117,28 +1167,20 @@ Respond YES if it's an insect, spider, mite, or similar creature that can be a p
         if not full_pest_data:
             return jsonify({'is_pest': False})
         
-        # Store in session
-        if 'dynamic_pests' not in session:
-            session['dynamic_pests'] = {}
-        
         pest_key = pest_name.lower().replace(' ', '_')
-        session['dynamic_pests'][pest_key] = full_pest_data
-        session.modified = True
-        
-        # Return card data
+
+        # Merge initial parse data into full_pest_data for fields generate_pest_info_text doesn't set
+        if 'threat_level' not in full_pest_data or not full_pest_data['threat_level']:
+            full_pest_data['threat_level'] = pest_data.get('threat_level', 'medium')
+        if 'category' not in full_pest_data or not full_pest_data['category']:
+            full_pest_data['category'] = pest_data.get('category', 'Crawling Pest')
+        full_pest_data['image'] = None
+        full_pest_data['info_url'] = f'/pest/{pest_key}'
+
         return jsonify({
             'is_pest': True,
             'is_known': False,
-            'pest_data': {
-                'name': pest_name,
-                'scientific_name': pest_data.get('scientific_name', ''),
-                'image': 'placeholder',
-                'description': pest_data.get('description', ''),
-                'symptoms': pest_data.get('symptoms', []),
-                'threat_level': pest_data.get('threat_level', 'medium'),
-                'category': pest_data.get('category', 'Crawling Pest'),
-                'info_url': f'/pest/{pest_key}'
-            }
+            'pest_data': full_pest_data,
         })
         
     except Exception as e:
@@ -1156,43 +1198,54 @@ def predict():
     
     try:
         img_bytes = file.read()
-        # Use Gemini for prediction
         pest_name, confidence, is_known_pest, scientific_name, description = predict_image(img_bytes)
         is_pest_result = is_pest(pest_name, confidence)
-        
-        # If it's an unknown pest, generate comprehensive information
+
+        full_pest_data = None
+        pest_key = pest_name.lower().replace(' ', '_')
+
         if not is_known_pest and is_pest_result:
             logger.info(f'Unknown pest detected: {pest_name}, generating information...')
-            
-            if pest_data := generate_pest_info(pest_name, scientific_name, img_bytes):
-                # Store in session
-                if 'dynamic_pests' not in session:
-                    session['dynamic_pests'] = {}
-                
-                pest_key = pest_name.lower().replace(' ', '_')
-                session['dynamic_pests'][pest_key] = pest_data
-                session.modified = True
-                
+            generated = generate_pest_info(pest_name, scientific_name, img_bytes)
+            if generated:
+                full_pest_data = generated
+                full_pest_data['image'] = f"{request.host_url}assets/images/{generated['image']}"
                 info_url = f'/pest/{pest_key}'
                 message = f'NEW PEST DETECTED: {pest_name}'
             else:
                 info_url = '/pests'
                 message = 'PEST DETECTED (Info generation failed)'
-        else:
-            # Known pest from our database
-            pest_key = pest_name.lower().replace(' ', '_')
+        elif is_known_pest and is_pest_result:
             info_url = f'/pest/{pest_key}'
-            message = 'PEST DETECTED!' if is_pest_result else 'NOT A PEST'
-        
+            message = 'PEST DETECTED!'
+            known = pest_info.get(pest_name, {})
+            full_pest_data = {
+                'name': known.get('name', pest_name),
+                'scientific_name': known.get('scientific_name', ''),
+                'image': f"{request.host_url}assets/images/pests/{known.get('image', '')}",
+                'description': known.get('description', ''),
+                'symptoms': known.get('symptoms', []),
+                'organic_treatment': known.get('organic_treatment', []),
+                'chemical_treatment': known.get('chemical_treatment', []),
+                'prevention': known.get('prevention', []),
+                'common_species': known.get('common_species', []),
+                'threat_level': get_threat_level(pest_name),
+                'category': get_category_display(pest_name),
+            }
+        else:
+            info_url = f'/pest/{pest_key}'
+            message = 'NOT A PEST'
+
         logger.info(f'Prediction complete: {pest_name} (Known: {is_known_pest}) with confidence {confidence:.2%}')
-        
+
         return jsonify({
             'class_name': pest_name,
             'confidence': f'{confidence:.2%}',
             'is_pest': is_pest_result,
             'is_new': not is_known_pest,
             'message': message,
-            'info_url': info_url
+            'info_url': info_url,
+            'pest_data': full_pest_data,
         })
         
     except Exception as e:

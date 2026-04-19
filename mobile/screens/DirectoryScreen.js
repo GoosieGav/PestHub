@@ -190,23 +190,19 @@ export default function DirectoryScreen({ navigation }) {
     setCustomResult(null);
 
     try {
-      const response = await pestAPI.searchPest(customSearchQuery);
-      
-      if (response.success && response.data) {
-        if (response.data.is_pest) {
-          setCustomResult(response.data.pest_data);
-        } else {
-          Alert.alert(
-            'Not Found',
-            'This doesn\'t appear to be a pest or insect. Please try another search.'
-          );
-        }
+      const data = await pestAPI.searchPest(customSearchQuery);
+
+      if (data.is_pest) {
+        setCustomResult(data.pest_data);
       } else {
-        Alert.alert('Error', response.error || 'Failed to search. Please try again.');
+        Alert.alert(
+          'Not Found',
+          "This doesn't appear to be a pest or insect. Please try another search."
+        );
       }
     } catch (error) {
       console.error('Error searching:', error);
-      Alert.alert('Error', 'Failed to connect to the server.');
+      Alert.alert('Error', error.message || 'Failed to connect to the server.');
     } finally {
       setIsSearching(false);
     }

@@ -160,23 +160,18 @@ export default function ClassifyScreen({ navigation }) {
     setResult(null);
 
     try {
-      const response = await pestAPI.classifyPest(selectedImage);
-      
-      if (response.success && response.data) {
-        setResult(response.data);
-        
-        if (!response.data.is_pest) {
-          Alert.alert(
-            'Not a Pest',
-            response.data.message || 'This image does not appear to contain a pest.'
-          );
-        }
-      } else {
-        Alert.alert('Error', response.error || 'Failed to analyze image. Please try again.');
+      const data = await pestAPI.classifyPest(selectedImage);
+      setResult(data);
+
+      if (!data.is_pest) {
+        Alert.alert(
+          'Not a Pest',
+          data.message || 'This image does not appear to contain a pest.'
+        );
       }
     } catch (error) {
       console.error('Error analyzing image:', error);
-      Alert.alert('Error', 'Failed to connect to the server. Please make sure the backend is running.');
+      Alert.alert('Error', error.message || 'Failed to connect to the server. Please make sure the backend is running.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -189,10 +184,11 @@ export default function ClassifyScreen({ navigation }) {
 
   const viewPestDetails = () => {
     if (result && result.is_pest) {
-      navigation.navigate('PestDetail', {
-        pestName: result.class_name,
-        infoUrl: result.info_url,
-      });
+      if (result.pest_data) {
+        navigation.navigate('PestDetail', { customPest: result.pest_data });
+      } else {
+        Alert.alert('Info Unavailable', 'Detailed information could not be generated for this pest. Please try again.');
+      }
     }
   };
 

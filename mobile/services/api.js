@@ -8,81 +8,33 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 90000, // 90 seconds for AI processing
+  timeout: 90000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 export const pestAPI = {
-  // Get all pests
-  getAllPests: async () => {
-    try {
-      const response = await api.get('/pests');
-      // Since Flask returns HTML, we'll need to parse or create a dedicated API endpoint
-      // For now, we'll use the known pest data
-      return {
-        success: true,
-        data: [],
-      };
-    } catch (error) {
-      console.error('Error fetching pests:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-  // Classify pest image
+  // Classify pest image — throws on error
   classifyPest: async (imageUri) => {
-    try {
-      const formData = new FormData();
-      
-      // Extract filename from URI
-      const filename = imageUri.split('/').pop();
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : 'image/jpeg';
-      
-      formData.append('file', {
-        uri: imageUri,
-        name: filename,
-        type: type,
-      });
+    const formData = new FormData();
+    const filename = imageUri.split('/').pop();
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : 'image/jpeg';
 
-      const response = await axios.post(`${API_BASE_URL}/predict`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 90000, // 90 seconds for AI image processing
-      });
+    formData.append('file', { uri: imageUri, name: filename, type });
 
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('Error classifying pest:', error);
-      return { success: false, error: error.message };
-    }
+    const response = await api.post('/predict', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
   },
 
-  // Search for custom pest
+  // Search for a pest by name — throws on error
   searchPest: async (query) => {
-    try {
-      const response = await api.post('/search_pest', { query });
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('Error searching pest:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-  // Get pest details
-  getPestDetails: async (pestName) => {
-    try {
-      const response = await api.get(`/pest/${pestName}`);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('Error fetching pest details:', error);
-      return { success: false, error: error.message };
-    }
+    const response = await api.post('/search_pest', { query });
+    return response.data;
   },
 };
 
 export default api;
-

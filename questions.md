@@ -1,5 +1,5 @@
 **"How accurate is your AI?"**
-> Our system uses Google Gemini 2.0 Flash, one of the highest-performing multimodal AI models available. We display confidence scores with every identification so farmers can gauge reliability. In testing, we see high-confidence results for common agricultural pests, and the adaptive system provides qualified assessments for novel species.
+> Our system uses Llama 3.2 Vision, Meta's state-of-the-art multimodal model running entirely on local hardware — no internet required. We display confidence scores with every identification so farmers can gauge reliability. In testing, we see high-confidence results for common agricultural pests, and the adaptive system provides qualified assessments for novel species.
 
 **"Who are your competitors?"**
 > Existing tools like Plantix, iNaturalist, and PictureInsect offer image-based identification, but they all depend on fixed databases. When they encounter an unknown pest, they fail. PEST-Hub's adaptive AI generation is our key differentiator -- we never hit a dead end.
@@ -14,7 +14,7 @@
 > Phase 1: Free app launch targeting small US farms through extension program partnerships. Phase 2: Premium feature rollout and expansion to international markets with localized pest databases. Phase 3: B2B licensing to established ag-tech companies.
 
 **"How much does it cost to build and run?"**
-> Our tech stack -- React Native, Flask, and Gemini API -- is cost-efficient. No custom model training means minimal R&D overhead. Our primary costs are API usage (which scales with users) and cloud hosting. The freemium model means revenue grows proportionally with our cost base.
+> Our tech stack -- React Native, Flask, and a locally-hosted Llama 3.2 Vision model -- is cost-efficient. No API fees, no per-call costs, and no custom model training means minimal R&D overhead. Our primary costs are cloud hosting and infrastructure. The freemium model means revenue grows proportionally with our cost base.
 
 **"What happens if the AI is wrong?"**
 > Every identification includes a confidence score, so users know how certain the AI is. We also provide our curated 12-pest library as a verified baseline. For critical decisions, we recommend users cross-reference with local extension services -- PEST-Hub is a first-response tool that gives farmers immediate direction, not a replacement for professional consultation on high-stakes decisions.

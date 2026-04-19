@@ -1,4 +1,3 @@
 flask
 pillow
-google-generativeai
-python-dotenv
+ollama

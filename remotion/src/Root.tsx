@@ -12,6 +12,7 @@ import { LandingPageVideo } from './presentations/LandingPageVideo';
 import { SolutionDemoVideo } from './presentations/SolutionDemoVideo';
 import { MobileLandingDemo } from './presentations/MobileLandingDemo';
 import { SolutionDemoMobile } from './presentations/SolutionDemoMobile';
+import { ImageScanVideo } from './presentations/ImageScanVideo';
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -44,6 +45,16 @@ export const RemotionRoot: React.FC = () => {
         fps={VIDEO_CONFIG.fps}
         width={1180}
         height={2556}
+      />
+
+      {/* === Image Scan Demo (phone dimensions, no frame) === */}
+      <Composition
+        id="ImageScanVideo"
+        component={ImageScanVideo}
+        durationInFrames={135}
+        fps={VIDEO_CONFIG.fps}
+        width={1170}
+        height={2532}
       />
 
       {/* === DECA Presentation Videos === */}
