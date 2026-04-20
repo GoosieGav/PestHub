@@ -17,7 +17,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { pestAPI } from '../services/api';
+import { PESTS } from '../pests';
 import { COLORS, GRADIENTS, SHADOWS, SPACING, FONTS } from '../theme';
+
+const THREAT_COLORS = { high: '#ef4444', medium: '#f59e0b', low: '#22c55e', none: '#94a3b8' };
+const THREAT_BGS    = { high: 'rgba(239,68,68,0.15)', medium: 'rgba(245,158,11,0.15)', low: 'rgba(34,197,94,0.15)', none: 'rgba(148,163,184,0.15)' };
+const getThreatColor = (t) => THREAT_COLORS[t] || THREAT_COLORS.none;
+const getThreatBg    = (t) => THREAT_BGS[t]    || THREAT_BGS.none;
 
 const { width, height } = Dimensions.get('window');
 
@@ -162,13 +168,6 @@ export default function ClassifyScreen({ navigation }) {
     try {
       const data = await pestAPI.classifyPest(selectedImage);
       setResult(data);
-
-      if (!data.is_pest) {
-        Alert.alert(
-          'Not a Pest',
-          data.message || 'This image does not appear to contain a pest.'
-        );
-      }
     } catch (error) {
       console.error('Error analyzing image:', error);
       Alert.alert('Error', error.message || 'Failed to connect to the server. Please make sure the backend is running.');
@@ -183,12 +182,19 @@ export default function ClassifyScreen({ navigation }) {
   };
 
   const viewPestDetails = () => {
-    if (result && result.is_pest) {
-      if (result.pest_data) {
-        navigation.navigate('PestDetail', { customPest: result.pest_data });
-      } else {
-        Alert.alert('Info Unavailable', 'Detailed information could not be generated for this pest. Please try again.');
-      }
+    if (!result || !result.is_pest) return;
+    if (result.is_new) {
+      Alert.alert(
+        'Generating Profile',
+        'AI is building a full profile for this pest. Please wait a moment then try again.'
+      );
+      return;
+    }
+    const knownPest = PESTS.find(p => p.name === result.class_name);
+    if (knownPest) {
+      navigation.navigate('PestDetail', { pest: knownPest });
+    } else {
+      Alert.alert('Info Unavailable', 'Could not find details for this pest.');
     }
   };
 
@@ -386,24 +392,53 @@ export default function ClassifyScreen({ navigation }) {
           </Animated.View>
         )}
 
-        {/* Results */}
-        {result && result.is_pest && (
+        {/* Not a Pest Result */}
+        {result && !result.class_name && (
+          <Animated.View style={[styles.resultSection, { opacity: fadeAnim }]}>
+            <GlassCard style={styles.resultCard}>
+              <View style={styles.resultHeader}>
+                <View style={[styles.successIcon, { marginBottom: SPACING.sm }]}>
+                  <Ionicons name="close-circle" size={48} color={COLORS.danger} />
+                </View>
+                <Text style={styles.resultTitle}>No Pest Detected</Text>
+              </View>
+              <View style={styles.resultContent}>
+                <Text style={{ color: COLORS.textSecondary, textAlign: 'center', fontSize: FONTS.bodySmall, lineHeight: 22 }}>
+                  No recognizable agricultural pest was found in this image. Try a clearer, closer shot of the pest.
+                </Text>
+              </View>
+              <View style={styles.resultActions}>
+                <TouchableOpacity style={styles.retryButton} activeOpacity={0.8} onPress={resetAnalysis}>
+                  <Ionicons name="camera-outline" size={20} color={COLORS.primary} />
+                  <Text style={styles.retryButtonText}>Try Another Image</Text>
+                </TouchableOpacity>
+              </View>
+            </GlassCard>
+          </Animated.View>
+        )}
+
+        {/* Pest / Creature Detected Results */}
+        {result && !!result.class_name && (
           <Animated.View style={[styles.resultSection, { opacity: fadeAnim }]}>
             <GlassCard style={styles.resultCard}>
               <View style={styles.resultHeader}>
                 <View style={styles.successIcon}>
                   <Ionicons name="checkmark-circle" size={48} color={COLORS.success} />
                 </View>
-                <Text style={styles.resultTitle}>Pest Detected!</Text>
+                <Text style={styles.resultTitle}>
+                  {result.is_traditional_pest === false ? 'Creature Detected' : 'Pest Detected'}
+                </Text>
               </View>
 
               <View style={styles.resultContent}>
                 <View style={styles.resultRow}>
-                  <Text style={styles.resultLabel}>Pest Name</Text>
+                  <Text style={styles.resultLabel}>
+                    {result.is_traditional_pest === false ? 'Creature' : 'Pest Name'}
+                  </Text>
                   <Text style={styles.resultValue}>{result.class_name}</Text>
                 </View>
 
-                <View style={styles.resultRow}>
+                <View style={[styles.resultRow, { borderBottomWidth: 0 }]}>
                   <Text style={styles.resultLabel}>Confidence</Text>
                   <View style={styles.confidenceBadge}>
                     <Text style={styles.confidenceText}>{result.confidence}</Text>
@@ -416,8 +451,13 @@ export default function ClassifyScreen({ navigation }) {
                     <Text style={styles.newPestText}>AI-Generated Information</Text>
                   </View>
                 )}
+              </View>
 
-                <Text style={styles.resultMessage}>{result.message}</Text>
+              <View style={[styles.threatBanner, { backgroundColor: getThreatColor(result.threat_level) }]}>
+                <Ionicons name="shield" size={18} color="#fff" />
+                <Text style={styles.threatBannerText}>
+                  {(result.threat_level || 'unknown').toUpperCase()} THREAT
+                </Text>
               </View>
 
               <View style={styles.resultActions}>
@@ -804,6 +844,22 @@ const styles = StyleSheet.create({
     fontSize: FONTS.bodySmall,
     fontWeight: '600',
     color: COLORS.primary,
+  },
+  threatBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: SPACING.lg,
+    gap: SPACING.sm,
+  },
+  threatBannerText: {
+    fontSize: FONTS.body,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 1,
   },
   newPestBadge: {
     flexDirection: 'row',

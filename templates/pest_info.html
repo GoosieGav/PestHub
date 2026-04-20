@@ -1,9 +1,67 @@
 {% extends "base.html" %}
 
-{% block title %}{{ pest.name }} Information - PEST-Hub{% endblock %}
+{% block title %}{% if pending %}{{ pending_name }} - Loading... - PEST-Hub{% elif error %}Error - PEST-Hub{% else %}{{ pest.name }} Information - PEST-Hub{% endif %}{% endblock %}
 
 {% block additional_styles %}
 <link rel="stylesheet" href="{{ url_for('css_assets', filename='pest-info.css') }}">
+{% if pending %}
+<style>
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+.skel {
+    background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-300) 50%, var(--gray-200) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+    border-radius: 5px;
+    display: block;
+}
+.skel-line        { height: 0.95rem; margin-bottom: 0.55rem; }
+.skel-line.w-full { width: 90%; }
+.skel-line.w-3q   { width: 72%; }
+.skel-line.w-half { width: 50%; }
+.skel-li {
+    background: var(--bg-card-light);
+    padding: 1rem 1.5rem;
+    margin-bottom: 0.75rem;
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--gray-300);
+}
+.skel-card-title { height: 1.3rem; width: 38%; margin-bottom: 0; }
+.skel-card-icon  { width: 1.25rem; height: 1.25rem; border-radius: 50%; flex-shrink: 0; }
+.skel-species-name { height: 1.1rem; width: 42%; margin-bottom: 0.75rem; }
+.skel-species-block {
+    background: var(--bg-card-light);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 1rem;
+}
+.generating-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-lg);
+    padding: 0.9rem 1.25rem;
+    margin-bottom: 2rem;
+    color: #1d4ed8;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+.gen-spinner {
+    width: 16px; height: 16px;
+    border: 2px solid #bfdbfe;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+    flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -14,19 +72,192 @@
         </a>
     </div>
 
+    {% if error %}
+    <div class="pest-info-container">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;text-align:center;padding:3rem 2rem;background:var(--bg-card);border-radius:var(--radius-xl);border:1px solid var(--gray-200);box-shadow:var(--shadow-md);">
+            <i class="fas fa-exclamation-circle" style="font-size:3rem;color:var(--error-color);"></i>
+            <h2 style="margin:0;color:var(--text-primary);">Profile Generation Failed</h2>
+            <p style="margin:0;color:var(--text-body);max-width:480px;">The AI was unable to generate a full profile for this pest. Please try classifying the image again.</p>
+            <a href="{{ url_for('classify') }}" class="btn btn-primary" style="margin-top:0.5rem;">
+                <i class="fas fa-redo"></i> Try Again
+            </a>
+        </div>
+    </div>
+
+    {% elif pending %}
+    <div class="pest-info-container">
+        <!-- Real header — name and sci-name are known immediately -->
+        <div class="main-header">
+            <div class="header-content">
+                <div class="pest-image-wrapper">
+                    <img id="pending-pest-img" class="pest-main-image" alt="{{ pending_name }}"
+                         style="display:none;">
+                    <div id="pending-placeholder" class="ai-pest-placeholder">
+                        <i class="fas fa-bug"></i>
+                        <p>AI Detected</p>
+                    </div>
+                </div>
+                <div class="pest-title">
+                    <h1>{{ pending_name }}</h1>
+                    {% if pending_scientific %}
+                    <p class="scientific-name">{{ pending_scientific }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Generating banner -->
+        <div class="generating-banner">
+            <div class="gen-spinner"></div>
+            <span>Generating full pest profile with AI — the page will update automatically when ready.</span>
+        </div>
+
+        <!-- Skeleton cards matching the real layout -->
+        <div class="content-grid">
+
+            <!-- Description -->
+            <div class="info-card full-width">
+                <div class="card-header" style="opacity:0.5;">
+                    <span class="skel skel-card-icon"></span>
+                    <span class="skel skel-card-title"></span>
+                </div>
+                <div class="card-content">
+                    <span class="skel skel-line w-full"></span>
+                    <span class="skel skel-line w-3q"></span>
+                    <span class="skel skel-line w-half" style="margin-bottom:0;"></span>
+                </div>
+            </div>
+
+            <!-- Common Species -->
+            <div class="info-card full-width">
+                <div class="card-header" style="opacity:0.5;">
+                    <span class="skel skel-card-icon"></span>
+                    <span class="skel skel-card-title"></span>
+                </div>
+                <div class="card-content">
+                    {% for _ in range(3) %}
+                    <div class="skel-species-block">
+                        <span class="skel skel-species-name"></span>
+                        <span class="skel skel-line w-full"></span>
+                        <span class="skel skel-line w-3q" style="margin-bottom:0;"></span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Damage Symptoms -->
+            <div class="info-card full-width">
+                <div class="card-header" style="opacity:0.5;">
+                    <span class="skel skel-card-icon"></span>
+                    <span class="skel skel-card-title"></span>
+                </div>
+                <div class="card-content">
+                    {% for _ in range(5) %}
+                    <div class="skel-li">
+                        <span class="skel skel-line {% if loop.index is odd %}w-full{% else %}w-3q{% endif %}" style="margin-bottom:0;"></span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Organic Treatment -->
+            <div class="info-card">
+                <div class="card-header" style="opacity:0.5;">
+                    <span class="skel skel-card-icon"></span>
+                    <span class="skel skel-card-title"></span>
+                </div>
+                <div class="card-content">
+                    {% for _ in range(4) %}
+                    <div class="skel-li">
+                        <span class="skel skel-line {% if loop.index is odd %}w-3q{% else %}w-full{% endif %}" style="margin-bottom:0;"></span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Chemical Treatment -->
+            <div class="info-card">
+                <div class="card-header" style="opacity:0.5;">
+                    <span class="skel skel-card-icon"></span>
+                    <span class="skel skel-card-title"></span>
+                </div>
+                <div class="card-content">
+                    {% for _ in range(4) %}
+                    <div class="skel-li">
+                        <span class="skel skel-line {% if loop.index is even %}w-3q{% else %}w-full{% endif %}" style="margin-bottom:0;"></span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Prevention -->
+            <div class="info-card full-width">
+                <div class="card-header" style="opacity:0.5;">
+                    <span class="skel skel-card-icon"></span>
+                    <span class="skel skel-card-title"></span>
+                </div>
+                <div class="card-content">
+                    {% for _ in range(4) %}
+                    <div class="skel-li">
+                        <span class="skel skel-line {% if loop.index is odd %}w-full{% else %}w-3q{% endif %}" style="margin-bottom:0;"></span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var pestKey = {{ pest_key | tojson }};
+
+        // Show the user's uploaded image from sessionStorage if available
+        var preview = sessionStorage.getItem('pendingPestPreview');
+        var storedKey = sessionStorage.getItem('pendingPestKey');
+        if (preview && storedKey === pestKey) {
+            var img = document.getElementById('pending-pest-img');
+            var placeholder = document.getElementById('pending-placeholder');
+            img.src = preview;
+            img.style.display = '';
+            placeholder.style.display = 'none';
+        }
+
+        // Poll for generation completion
+        var polls = 0;
+        var maxPolls = 60;
+        var timer = setInterval(function() {
+            if (++polls > maxPolls) { clearInterval(timer); return; }
+            fetch('/pest_status/' + pestKey)
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d.status === 'complete' || d.status === 'error') {
+                        clearInterval(timer);
+                        sessionStorage.removeItem('pendingPestPreview');
+                        sessionStorage.removeItem('pendingPestKey');
+                        window.location.reload();
+                    }
+                })
+                .catch(function() {});
+        }, 3000);
+    })();
+    </script>
+
+    {% else %}
+    <!-- Full pest info page -->
     <div class="pest-info-container">
         <div class="main-header">
             <div class="header-content">
                 <div class="pest-image-wrapper">
                     {% set known_pests = ['ants.jpg', 'bees.jpg', 'beetles.jpg', 'caterpillars.jpg', 'earthworms.jpg', 'earwigs.jpg', 'grasshoppers.jpg', 'moths.jpg', 'slugs.jpg', 'snails.jpg', 'wasps.jpg', 'weevils.jpg'] %}
-                    {% if pest.image.startswith('dynamic_pests/') %}
-                        <img src="{{ url_for('public_assets', filename='images/' + pest.image) }}" 
+                    {% if pest.image and pest.image.startswith('dynamic_pests/') %}
+                        <img src="{{ url_for('public_assets', filename='images/' + pest.image) }}"
                              alt="{{ pest.name }}"
                              class="pest-main-image">
-                    {% elif pest.image in known_pests %}
-                    <img src="{{ url_for('public_assets', filename='images/pests/' + pest.image) }}" 
-                         alt="{{ pest.name }}"
-                         class="pest-main-image">
+                    {% elif pest.image and pest.image in known_pests %}
+                        <img src="{{ url_for('public_assets', filename='images/pests/' + pest.image) }}"
+                             alt="{{ pest.name }}"
+                             class="pest-main-image">
                     {% else %}
                         <div class="ai-pest-placeholder">
                             <i class="fas fa-bug"></i>
@@ -73,10 +304,17 @@
                 </div>
             </div>
 
+            {% if pest.is_traditional_pest is defined and not pest.is_traditional_pest %}
+            <div style="display:flex;align-items:center;gap:0.75rem;background:#fef3c7;border:1px solid #fcd34d;border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:0;grid-column:1/-1;">
+                <i class="fas fa-info-circle" style="color:#d97706;font-size:1.1rem;flex-shrink:0;"></i>
+                <p style="margin:0;color:#92400e;font-weight:500;font-size:0.95rem;">This is not a traditional agricultural pest. Information below covers potential concerns and management strategies relevant to an agricultural or outdoor context.</p>
+            </div>
+            {% endif %}
+
             <div class="info-card symptoms full-width">
                 <div class="card-header">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <h2>Damage Symptoms</h2>
+                    <h2>{% if pest.is_traditional_pest is not defined or pest.is_traditional_pest %}Damage Symptoms{% else %}Concerns &amp; Impacts{% endif %}</h2>
                 </div>
                 <div class="card-content symptoms-content">
                     <div class="symptoms-list">
@@ -102,8 +340,8 @@
                             'Weevils': 'Weevils.jpg'
                         } %}
                         {% if pest.name in damage_image_map %}
-                            <img src="{{ url_for('public_assets', filename='images/damage/' + damage_image_map[pest.name]) }}" 
-                             alt="{{ pest.name }} damage example"
+                            <img src="{{ url_for('public_assets', filename='images/damage/' + damage_image_map[pest.name]) }}"
+                                 alt="{{ pest.name }} damage example"
                                  class="damage-photo">
                         {% else %}
                             <div class="ai-generated-notice">
@@ -116,10 +354,11 @@
                 </div>
             </div>
 
-            <div class="info-card treatment">
+            {% set _trad = pest.is_traditional_pest is not defined or pest.is_traditional_pest %}
+            <div class="info-card treatment {% if not _trad %}full-width{% endif %}">
                 <div class="card-header">
-                    <i class="fas fa-seedling"></i>
-                    <h2>Organic Treatment</h2>
+                    <i class="fas fa-{% if _trad %}seedling{% else %}shield-alt{% endif %}"></i>
+                    <h2>{% if _trad %}Organic Treatment{% else %}Management Strategies{% endif %}</h2>
                 </div>
                 <div class="card-content">
                     <ul>
@@ -130,6 +369,7 @@
                 </div>
             </div>
 
+            {% if _trad %}
             <div class="info-card treatment">
                 <div class="card-header">
                     <i class="fas fa-flask"></i>
@@ -143,6 +383,7 @@
                     </ul>
                 </div>
             </div>
+            {% endif %}
 
             <div class="info-card prevention full-width">
                 <div class="card-header">
@@ -159,5 +400,6 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

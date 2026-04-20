@@ -9,6 +9,7 @@ import time
 import urllib.request
 import ollama
 import secrets
+import threading
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -17,7 +18,12 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = secrets.token_hex(32)
 
-OLLAMA_MODEL = 'llava-phi3'
+OLLAMA_MODEL = 'qwen2.5vl:7b'
+
+# Server-side storage for dynamically generated pests (replaces broken session approach)
+_dynamic_pests = {}      # pest_key -> pest_data dict
+_generation_jobs = {}    # pest_key -> 'pending' | 'complete' | 'error'
+_pending_metadata = {}   # pest_key -> {'name': str, 'scientific_name': str}
 
 
 def _ensure_ollama_running():
@@ -34,7 +40,7 @@ def _ensure_ollama_running():
         ['ollama', 'serve'],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
-        env={**os.environ, 'OLLAMA_NUM_THREADS': '5', 'OLLAMA_NUM_PARALLEL': '1'},
+        env={**os.environ, 'OLLAMA_FLASH_ATTENTION': '1', 'OLLAMA_NUM_PARALLEL': '1'},
     )
     for _ in range(20):
         time.sleep(0.5)
@@ -48,6 +54,22 @@ def _ensure_ollama_running():
 
 
 _ensure_ollama_running()
+
+
+def _warmup_model():
+    try:
+        logger.info(f"Pre-warming {OLLAMA_MODEL}...")
+        ollama.chat(
+            model=OLLAMA_MODEL,
+            messages=[{'role': 'user', 'content': 'hi'}],
+            options={'num_ctx': 512},
+            keep_alive='1h',
+        )
+        logger.info("Model warm-up complete")
+    except Exception as e:
+        logger.warning(f"Model warm-up failed: {e}")
+
+threading.Thread(target=_warmup_model, daemon=True).start()
 
 # Register public_assets directory
 @app.route('/assets/<path:filename>')
@@ -746,8 +768,9 @@ pest_info = {
 }
 
 def _pil_to_b64(image: Image.Image) -> str:
+    image.thumbnail((336, 336), Image.LANCZOS)
     buf = io.BytesIO()
-    image.save(buf, format='JPEG', quality=95)
+    image.save(buf, format='JPEG', quality=85)
     return base64.b64encode(buf.getvalue()).decode('utf-8')
 
 
@@ -756,36 +779,45 @@ def predict_image(image_bytes):
         # Load image using PIL
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
         
-        # Create prompt for Gemini - identify any pest
-        prompt = """You are an expert agricultural pest identification AI. Analyze this image and identify the pest.
+        prompt = """You are a life-form detection AI. Examine the image and respond using EXACTLY one of the two formats below.
 
-First, determine if this is one of these common agricultural pests:
-- Ants
-- Bees
-- Beetles
-- Caterpillars
-- Earthworms
-- Earwigs
-- Grasshoppers
-- Moths
-- Slugs
-- Snails
-- Wasps
-- Weevils
+KNOWN AGRICULTURAL PESTS:
+Ants, Bees, Beetles, Caterpillars, Earthworms, Earwigs, Grasshoppers, Moths, Slugs, Snails, Wasps, Weevils
 
-If it matches one of these, respond with:
+CONFIDENCE: choose freely from 0.00–1.00 based on image clarity. Do not default to fixed values.
+
+THREAT in an agricultural/garden context:
+high — significant crop or structural damage
+medium — moderate nuisance or damage potential
+low — minimal impact or largely beneficial
+none — no meaningful agricultural threat (humans, dogs, cats, large animals, etc.)
+
+Format A — image clearly shows a creature from the KNOWN AGRICULTURAL PESTS list above:
 MATCH: YES
-PEST: [exact pest name from list above]
-CONFIDENCE: [0.00-1.00]
+PEST: <exact name from the list>
+CONFIDENCE: <0.00–1.00>
+THREAT: <high/medium/low>
 
-If it's a different pest not in the list above, respond with:
+Format B — use this for absolutely everything else:
 MATCH: NO
-PEST: [specific pest name]
-SCIENTIFIC_NAME: [scientific name]
-CONFIDENCE: [0.00-1.00]
-DESCRIPTION: [2-3 sentence description of the pest]
+PEST: <the common name of whatever is in the image, or "none" if truly nothing living is present>
+SCIENTIFIC_NAME: <scientific name, or "n/a">
+CONFIDENCE: <0.00–1.00>
+THREAT: <high/medium/low/none>
+IS_TRADITIONAL_PEST: NO
+DESCRIPTION: <2–3 sentences>
 
-Be precise and accurate."""
+CRITICAL EXAMPLES — follow these exactly:
+Image of a human person → MATCH: NO / PEST: Human / THREAT: none
+Image of a dog → MATCH: NO / PEST: Dog / THREAT: none
+Image of a crane fly → MATCH: NO / PEST: Crane Fly / THREAT: low
+Image of a spider → MATCH: NO / PEST: Spider / THREAT: low
+Image of a bird → MATCH: NO / PEST: <bird species name> / THREAT: none
+Image with NO living creature at all → MATCH: NO / PEST: none / THREAT: none
+
+Reply with only the formatted lines. Do not include angle brackets or any other text."""
+
+        img_b64 = _pil_to_b64(image)
 
         logger.info("Sending image to Ollama for analysis")
         response = ollama.chat(
@@ -793,23 +825,27 @@ Be precise and accurate."""
             messages=[{
                 'role': 'user',
                 'content': prompt,
-                'images': [_pil_to_b64(image)],
-            }]
+                'images': [img_b64],
+            }],
+            options={'num_ctx': 2048},
+            keep_alive='30m',
         )
         response_text = response.message.content.strip()
         logger.info(f"Ollama response: {response_text}")
         
         # Parse response
-        is_match = False
+        match_type = 'NONE'
         pest_name = None
         scientific_name = None
-        confidence = 0.5
+        confidence = 0.75
         description = None
-        
+        threat_level = 'medium'
+        is_traditional_pest = True
+
         for line in response_text.split('\n'):
             line = line.strip()
             if line.startswith('MATCH:'):
-                is_match = 'YES' in line.upper()
+                match_type = line.replace('MATCH:', '').strip().upper()
             elif line.startswith('PEST:'):
                 pest_name = line.replace('PEST:', '').strip()
             elif line.startswith('SCIENTIFIC_NAME:'):
@@ -817,67 +853,162 @@ Be precise and accurate."""
             elif line.startswith('CONFIDENCE:'):
                 try:
                     confidence = float(line.replace('CONFIDENCE:', '').strip())
+                    confidence = max(0.0, min(1.0, confidence))
                 except ValueError:
-                    confidence = 0.75
+                    pass
             elif line.startswith('DESCRIPTION:'):
                 description = line.replace('DESCRIPTION:', '').strip()
-        
-        # If it's a known pest, validate it
-        if is_match and pest_name not in class_names:
-            # Try to find closest match
+            elif line.startswith('THREAT:'):
+                t = line.replace('THREAT:', '').strip().lower()
+                threat_level = t if t in ('high', 'medium', 'low', 'none') else 'medium'
+            elif line.startswith('IS_TRADITIONAL_PEST:'):
+                is_traditional_pest = 'YES' in line.upper()
+
+        # Normalise legacy MATCH: NONE — treat same as MATCH: NO
+        if match_type == 'NONE':
+            match_type = 'NO'
+
+        # Format B with PEST: none / n/a means nothing detected — try fallbacks
+        _no_creature_values = {'none', 'n/a', 'no creature', 'no creature detected', ''}
+        if match_type == 'NO' and (not pest_name or pest_name.lower().strip() in _no_creature_values):
+
+            # Fallback 1: scan the raw response text for any creature keyword
+            _kw_map = [
+                ('human', 'Human'), ('person', 'Human'), ('people', 'Human'),
+                (' man ', 'Human'), ('woman', 'Human'), ('child', 'Human'),
+                ('crane fly', 'Crane Fly'), ('mosquito', 'Mosquito'),
+                ('spider', 'Spider'), ('fly', 'Fly'), ('bee', 'Bee'),
+                ('dog', 'Dog'), ('cat', 'Cat'), ('bird', 'Bird'),
+                ('deer', 'Deer'), ('rabbit', 'Rabbit'), ('squirrel', 'Squirrel'),
+                ('raccoon', 'Raccoon'), ('mouse', 'Mouse'), ('rat', 'Rat'),
+            ]
+            rt_lower = response_text.lower()
+            for kw, name in _kw_map:
+                if kw in rt_lower:
+                    logger.info(f"Keyword '{kw}' found in first-pass response — creature: {name}")
+                    return name, confidence, False, None, None, 'none', False
+
+            # Fallback 2: second Ollama call asking a simpler question
+            logger.info("No keyword match — trying fallback Ollama call")
+            try:
+                fb_response = ollama.chat(
+                    model=OLLAMA_MODEL,
+                    messages=[{
+                        'role': 'user',
+                        'content': "What living creature do you see in this image? Reply with only a short common name like 'Human', 'Dog', 'Spider'. If there is no living creature at all, reply: nothing",
+                        'images': [img_b64],
+                    }],
+                    options={'num_ctx': 512},
+                    keep_alive='30m',
+                )
+                fb_raw = fb_response.message.content.strip()
+                logger.info(f"Fallback Ollama response: {fb_raw}")
+                # Extract creature name — scan for keywords in response too
+                fb_lower = fb_raw.lower()
+                _nothing = {'nothing', 'none', 'no', 'empty', 'n/a', ''}
+                for kw, name in _kw_map:
+                    if kw in fb_lower:
+                        logger.info(f"Fallback keyword match: {name}")
+                        return name, confidence, False, None, None, 'none', False
+                # Use the first line if it looks like a short creature name
+                fb_line = fb_raw.split('\n')[0].strip()
+                if fb_line.lower() not in _nothing and 1 < len(fb_line) < 50:
+                    pest_name = fb_line.title() if fb_line.islower() else fb_line
+                    logger.info(f"Fallback creature: {pest_name}")
+                    return pest_name, confidence, False, None, None, 'none', False
+            except Exception as fb_err:
+                logger.warning(f"Fallback detection failed: {fb_err}")
+
+            logger.info(f'No creature detected (confidence {confidence:.2%})')
+            return None, confidence, False, None, None, 'none', True
+
+        # Format B non-traditional creature
+        if match_type == 'NO':
+            is_traditional_pest = False
+            if not threat_level:
+                threat_level = 'none'
+            logger.info(f'Non-traditional creature: {pest_name} threat={threat_level} confidence={confidence:.2%}')
+            return pest_name, confidence, False, scientific_name, description, threat_level, is_traditional_pest
+
+        # Format A — validate known pest name
+        is_known_pest = True
+        if pest_name not in class_names:
             for class_name in class_names:
-                if class_name.lower() in pest_name.lower() or pest_name.lower() in class_name.lower():
+                if class_name.lower() in (pest_name or '').lower() or (pest_name or '').lower() in class_name.lower():
                     pest_name = class_name
                     break
             else:
-                pest_name = 'Beetles'
-                confidence = 0.5
-        
-        logger.info(f"Final prediction: {pest_name} (Known: {is_match}) with confidence {confidence:.2%}")
-        return pest_name, confidence, is_match, scientific_name, description
+                # Model used MATCH: YES for a creature not on the list — demote to non-traditional
+                logger.info(f'Model used MATCH: YES for unknown pest "{pest_name}" — treating as non-traditional creature')
+                is_known_pest = False
+                is_traditional_pest = False
+                if not threat_level or threat_level == 'medium':
+                    threat_level = 'low'
+                logger.info(f'Non-traditional creature: {pest_name} threat={threat_level} confidence={confidence:.2%}')
+                return pest_name, confidence, False, scientific_name, description, threat_level, is_traditional_pest
+
+        # Use static threat level for known pests
+        if is_known_pest:
+            threat_level = get_threat_level(pest_name)
+            is_traditional_pest = True
+
+        logger.info(f"Prediction: {pest_name} known={is_known_pest} traditional={is_traditional_pest} threat={threat_level} confidence={confidence:.2%}")
+        return pest_name, confidence, is_known_pest, scientific_name, description, threat_level, is_traditional_pest
         
     except Exception as e:
         logger.error(f"Error in predict_image: {str(e)}", exc_info=True)
         raise
 
-def generate_pest_info(pest_name, scientific_name, image_bytes):
-    """Generate comprehensive pest information using Gemini AI"""
+def generate_pest_info(pest_name, scientific_name, image_bytes, is_traditional_pest=True):
+    """Generate comprehensive pest information using Ollama AI"""
     try:
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
-        
-        # Save the uploaded image for the dynamic pest
+
         dynamic_pests_dir = os.path.join('public_assets', 'images', 'dynamic_pests')
         os.makedirs(dynamic_pests_dir, exist_ok=True)
-        
-        # Create a safe filename from pest name
         safe_filename = pest_name.lower().replace(' ', '_') + '.jpg'
         image_path = os.path.join(dynamic_pests_dir, safe_filename)
-        
-        # Save the image
         image.save(image_path, 'JPEG', quality=95)
         logger.info(f"Saved dynamic pest image to {image_path}")
-        
-        # Store relative path for URL
         image_url = f'dynamic_pests/{safe_filename}'
-        
-        prompt = f"""You are an agricultural pest expert. Provide comprehensive information about {pest_name} ({scientific_name or 'provide scientific name'}).
 
-Respond in this EXACT format:
+        if is_traditional_pest:
+            prompt = f"""You are an agricultural pest expert. Provide comprehensive information about {pest_name} ({scientific_name or 'provide scientific name'}).
 
-SCIENTIFIC_NAME: [scientific name]
-DESCRIPTION: [2-3 sentences about the pest]
-SYMPTOMS: [5 damage symptoms, separated by ||| ]
-ORGANIC_TREATMENT: [5 organic treatment methods, separated by ||| ]
-CHEMICAL_TREATMENT: [5 chemical treatment methods, separated by ||| ]
-PREVENTION: [5 prevention strategies, separated by ||| ]
-SPECIES_1_NAME: [common species name]
-SPECIES_1_DESC: [description]
-SPECIES_2_NAME: [common species name]
-SPECIES_2_DESC: [description]
-SPECIES_3_NAME: [common species name]
-SPECIES_3_DESC: [description]
+Respond in this EXACT format (fill in real values — no brackets in your output):
 
-Be specific and professional. Use ||| as separator for list items."""
+SCIENTIFIC_NAME: the scientific name
+DESCRIPTION: 2-3 sentences about the pest
+SYMPTOMS: symptom one ||| symptom two ||| symptom three ||| symptom four ||| symptom five
+ORGANIC_TREATMENT: method one ||| method two ||| method three ||| method four ||| method five
+CHEMICAL_TREATMENT: method one ||| method two ||| method three ||| method four ||| method five
+PREVENTION: tip one ||| tip two ||| tip three ||| tip four ||| tip five
+SPECIES_1_NAME: first common species name
+SPECIES_1_DESC: description of first species
+SPECIES_2_NAME: second common species name
+SPECIES_2_DESC: description of second species
+SPECIES_3_NAME: third common species name
+SPECIES_3_DESC: description of third species
+
+Be specific and professional. Use ||| to separate list items. Do not include brackets."""
+        else:
+            prompt = f"""You are a wildlife and environmental expert. Provide comprehensive information about {pest_name} ({scientific_name or 'provide scientific name'}) in an agricultural or outdoor context.
+
+Respond in this EXACT format (fill in real values — no brackets in your output):
+
+SCIENTIFIC_NAME: the scientific name
+DESCRIPTION: 2-3 sentences about this creature and its behaviour
+CONCERNS: concern one ||| concern two ||| concern three ||| concern four ||| concern five
+MANAGEMENT: strategy one ||| strategy two ||| strategy three ||| strategy four ||| strategy five
+PREVENTION: tip one ||| tip two ||| tip three ||| tip four ||| tip five
+SPECIES_1_NAME: first common species or subspecies name
+SPECIES_1_DESC: description of first species
+SPECIES_2_NAME: second common species or subspecies name
+SPECIES_2_DESC: description of second species
+SPECIES_3_NAME: third common species or subspecies name
+SPECIES_3_DESC: description of third species
+
+Be specific and professional. Use ||| to separate list items. Do not include brackets."""
 
         response = ollama.chat(
             model=OLLAMA_MODEL,
@@ -885,7 +1016,9 @@ Be specific and professional. Use ||| as separator for list items."""
                 'role': 'user',
                 'content': prompt,
                 'images': [_pil_to_b64(image)],
-            }]
+            }],
+            options={'num_ctx': 2048},
+            keep_alive='30m',
         )
         response_text = response.message.content.strip()
         logger.info(f"Generated pest info for {pest_name}")
@@ -894,16 +1027,16 @@ Be specific and professional. Use ||| as separator for list items."""
         pest_data = {
             'name': pest_name,
             'scientific_name': scientific_name or pest_name,
-            'image': image_url,  # Use the saved image path
+            'image': image_url,
             'description': '',
             'symptoms': [],
             'organic_treatment': [],
             'chemical_treatment': [],
             'prevention': [],
-            'common_species': []
+            'common_species': [],
+            'is_traditional_pest': is_traditional_pest,
         }
-        
-        current_key = None
+
         for line in response_text.split('\n'):
             line = line.strip()
             if line.startswith('SCIENTIFIC_NAME:'):
@@ -911,36 +1044,30 @@ Be specific and professional. Use ||| as separator for list items."""
             elif line.startswith('DESCRIPTION:'):
                 pest_data['description'] = line.replace('DESCRIPTION:', '').strip()
             elif line.startswith('SYMPTOMS:'):
-                symptoms_text = line.replace('SYMPTOMS:', '').strip()
-                pest_data['symptoms'] = [s.strip() for s in symptoms_text.split('|||') if s.strip()]
+                pest_data['symptoms'] = [s.strip() for s in line.replace('SYMPTOMS:', '').strip().split('|||') if s.strip()]
+            elif line.startswith('CONCERNS:'):
+                pest_data['symptoms'] = [s.strip() for s in line.replace('CONCERNS:', '').strip().split('|||') if s.strip()]
             elif line.startswith('ORGANIC_TREATMENT:'):
-                treatment_text = line.replace('ORGANIC_TREATMENT:', '').strip()
-                pest_data['organic_treatment'] = [t.strip() for t in treatment_text.split('|||') if t.strip()]
+                pest_data['organic_treatment'] = [t.strip() for t in line.replace('ORGANIC_TREATMENT:', '').strip().split('|||') if t.strip()]
+            elif line.startswith('MANAGEMENT:'):
+                pest_data['organic_treatment'] = [t.strip() for t in line.replace('MANAGEMENT:', '').strip().split('|||') if t.strip()]
             elif line.startswith('CHEMICAL_TREATMENT:'):
-                treatment_text = line.replace('CHEMICAL_TREATMENT:', '').strip()
-                pest_data['chemical_treatment'] = [t.strip() for t in treatment_text.split('|||') if t.strip()]
+                pest_data['chemical_treatment'] = [t.strip() for t in line.replace('CHEMICAL_TREATMENT:', '').strip().split('|||') if t.strip()]
             elif line.startswith('PREVENTION:'):
-                prevention_text = line.replace('PREVENTION:', '').strip()
-                pest_data['prevention'] = [p.strip() for p in prevention_text.split('|||') if p.strip()]
+                pest_data['prevention'] = [p.strip() for p in line.replace('PREVENTION:', '').strip().split('|||') if p.strip()]
             elif line.startswith('SPECIES_1_NAME:'):
-                species_name = line.replace('SPECIES_1_NAME:', '').strip()
-                pest_data['_species_1_name'] = species_name
+                pest_data['_species_1_name'] = line.replace('SPECIES_1_NAME:', '').strip()
             elif line.startswith('SPECIES_1_DESC:'):
-                species_desc = line.replace('SPECIES_1_DESC:', '').strip()
-                pest_data['common_species'].append({'name': pest_data.get('_species_1_name', 'Common Species 1'), 'description': species_desc})
+                pest_data['common_species'].append({'name': pest_data.get('_species_1_name', 'Species 1'), 'description': line.replace('SPECIES_1_DESC:', '').strip()})
             elif line.startswith('SPECIES_2_NAME:'):
-                species_name = line.replace('SPECIES_2_NAME:', '').strip()
-                pest_data['_species_2_name'] = species_name
+                pest_data['_species_2_name'] = line.replace('SPECIES_2_NAME:', '').strip()
             elif line.startswith('SPECIES_2_DESC:'):
-                species_desc = line.replace('SPECIES_2_DESC:', '').strip()
-                pest_data['common_species'].append({'name': pest_data.get('_species_2_name', 'Common Species 2'), 'description': species_desc})
+                pest_data['common_species'].append({'name': pest_data.get('_species_2_name', 'Species 2'), 'description': line.replace('SPECIES_2_DESC:', '').strip()})
             elif line.startswith('SPECIES_3_NAME:'):
-                species_name = line.replace('SPECIES_3_NAME:', '').strip()
-                pest_data['_species_3_name'] = species_name
+                pest_data['_species_3_name'] = line.replace('SPECIES_3_NAME:', '').strip()
             elif line.startswith('SPECIES_3_DESC:'):
-                species_desc = line.replace('SPECIES_3_DESC:', '').strip()
-                pest_data['common_species'].append({'name': pest_data.get('_species_3_name', 'Common Species 3'), 'description': species_desc})
-        
+                pest_data['common_species'].append({'name': pest_data.get('_species_3_name', 'Species 3'), 'description': line.replace('SPECIES_3_DESC:', '').strip()})
+
         return pest_data
         
     except Exception as e:
@@ -971,7 +1098,9 @@ Be specific and professional. Use ||| as separator for list items."""
 
         response = ollama.chat(
             model=OLLAMA_MODEL,
-            messages=[{'role': 'user', 'content': prompt}]
+            messages=[{'role': 'user', 'content': prompt}],
+            options={'num_ctx': 2048},
+            keep_alive='30m',
         )
         response_text = response.message.content.strip()
         logger.info(f"Generated pest info for {pest_name}")
@@ -1051,20 +1180,34 @@ def about():
 
 @app.route('/pest/<pest_name>')
 def pest_details(pest_name):
-    # Handle case-insensitive matching
     pest_name_normalized = pest_name.replace('_', ' ').title()
-    
-    # Check if the pest exists in our static database
+
     if pest_name_normalized in pest_info:
-        return render_template('pest_info.html', pest=pest_info[pest_name_normalized])
-    
-    # Check if it's a dynamically generated pest
-    if 'dynamic_pests' in session and pest_name in session['dynamic_pests']:
-        pest_data = session['dynamic_pests'][pest_name]
-        return render_template('pest_info.html', pest=pest_data)
-    
-    # If not found, return 404
+        return render_template('pest_info.html', pest=pest_info[pest_name_normalized], pending=False, error=False)
+
+    pest_key = pest_name.lower()
+    status = _generation_jobs.get(pest_key)
+
+    if status == 'complete' and pest_key in _dynamic_pests:
+        return render_template('pest_info.html', pest=_dynamic_pests[pest_key], pending=False, error=False)
+    if status == 'pending':
+        meta = _pending_metadata.get(pest_key, {})
+        return render_template('pest_info.html', pest=None, pending=True, error=False,
+                               pest_key=pest_key,
+                               pending_name=meta.get('name', pest_name.replace('_', ' ').title()),
+                               pending_scientific=meta.get('scientific_name', ''),
+                               pending_image=meta.get('image', ''))
+    if status == 'error':
+        return render_template('pest_info.html', pest=None, pending=False, error=True, pest_key=pest_key)
+
     return render_template('404.html'), 404
+
+@app.route('/pest_status/<pest_key>')
+def pest_status(pest_key):
+    status = _generation_jobs.get(pest_key)
+    if status is None:
+        return jsonify({'status': 'not_found'})
+    return jsonify({'status': status})
 
 @app.route('/pests')
 def pest_directory():
@@ -1119,7 +1262,9 @@ Respond YES if it's an insect, spider, mite, or similar creature that can be a p
 
         response = ollama.chat(
             model=OLLAMA_MODEL,
-            messages=[{'role': 'user', 'content': prompt}]
+            messages=[{'role': 'user', 'content': prompt}],
+            options={'num_ctx': 2048},
+            keep_alive='30m',
         )
         response_text = response.message.content.strip()
         logger.info(f"Custom search for '{pest_query}': {response_text[:100]}")
@@ -1177,6 +1322,9 @@ Respond YES if it's an insect, spider, mite, or similar creature that can be a p
         full_pest_data['image'] = None
         full_pest_data['info_url'] = f'/pest/{pest_key}'
 
+        _dynamic_pests[pest_key] = full_pest_data
+        _generation_jobs[pest_key] = 'complete'
+
         return jsonify({
             'is_pest': True,
             'is_known': False,
@@ -1198,56 +1346,80 @@ def predict():
     
     try:
         img_bytes = file.read()
-        pest_name, confidence, is_known_pest, scientific_name, description = predict_image(img_bytes)
-        is_pest_result = is_pest(pest_name, confidence)
+        pest_name, confidence, is_known_pest, scientific_name, description, threat_level, is_traditional_pest = predict_image(img_bytes)
 
-        full_pest_data = None
+        # No creature detected
+        if pest_name is None:
+            return jsonify({
+                'class_name': None,
+                'confidence': f'{confidence:.2%}',
+                'is_pest': False,
+                'is_new': False,
+                'message': 'No creature detected',
+                'info_url': None,
+                'generation_status': None,
+                'threat_level': 'none',
+                'is_traditional_pest': True,
+            })
+
         pest_key = pest_name.lower().replace(' ', '_')
 
-        if not is_known_pest and is_pest_result:
-            logger.info(f'Unknown pest detected: {pest_name}, generating information...')
-            generated = generate_pest_info(pest_name, scientific_name, img_bytes)
-            if generated:
-                full_pest_data = generated
-                full_pest_data['image'] = f"{request.host_url}assets/images/{generated['image']}"
-                info_url = f'/pest/{pest_key}'
-                message = f'NEW PEST DETECTED: {pest_name}'
-            else:
-                info_url = '/pests'
-                message = 'PEST DETECTED (Info generation failed)'
-        elif is_known_pest and is_pest_result:
-            info_url = f'/pest/{pest_key}'
-            message = 'PEST DETECTED!'
-            known = pest_info.get(pest_name, {})
-            full_pest_data = {
-                'name': known.get('name', pest_name),
-                'scientific_name': known.get('scientific_name', ''),
-                'image': f"{request.host_url}assets/images/pests/{known.get('image', '')}",
-                'description': known.get('description', ''),
-                'symptoms': known.get('symptoms', []),
-                'organic_treatment': known.get('organic_treatment', []),
-                'chemical_treatment': known.get('chemical_treatment', []),
-                'prevention': known.get('prevention', []),
-                'common_species': known.get('common_species', []),
-                'threat_level': get_threat_level(pest_name),
-                'category': get_category_display(pest_name),
+        if not is_known_pest:
+            logger.info(f'Unknown creature detected: {pest_name}, starting background generation...')
+
+            _dyn_dir = os.path.join('public_assets', 'images', 'dynamic_pests')
+            os.makedirs(_dyn_dir, exist_ok=True)
+            _img_filename = pest_key + '.jpg'
+            Image.open(io.BytesIO(img_bytes)).convert('RGB').save(
+                os.path.join(_dyn_dir, _img_filename), 'JPEG', quality=95
+            )
+            _pending_image = f'dynamic_pests/{_img_filename}'
+
+            _generation_jobs[pest_key] = 'pending'
+            _pending_metadata[pest_key] = {
+                'name': pest_name,
+                'scientific_name': scientific_name or '',
+                'image': _pending_image,
             }
+
+            def _bg_generate(pk, pn, sn, ib, itp):
+                try:
+                    generated = generate_pest_info(pn, sn, ib, is_traditional_pest=itp)
+                    if generated:
+                        _dynamic_pests[pk] = generated
+                        _generation_jobs[pk] = 'complete'
+                        logger.info(f'Background generation complete for {pn}')
+                    else:
+                        _generation_jobs[pk] = 'error'
+                except Exception as exc:
+                    logger.error(f'Background generation failed for {pn}: {exc}')
+                    _generation_jobs[pk] = 'error'
+
+            threading.Thread(target=_bg_generate, args=(pest_key, pest_name, scientific_name, img_bytes, is_traditional_pest), daemon=True).start()
+
+            info_url = f'/pest/{pest_key}'
+            message = 'PEST DETECTED' if is_traditional_pest else 'CREATURE DETECTED'
+            generation_status = 'pending'
+
         else:
             info_url = f'/pest/{pest_key}'
-            message = 'NOT A PEST'
+            message = 'PEST DETECTED'
+            generation_status = 'complete'
 
-        logger.info(f'Prediction complete: {pest_name} (Known: {is_known_pest}) with confidence {confidence:.2%}')
+        logger.info(f'Prediction complete: {pest_name} known={is_known_pest} threat={threat_level} confidence={confidence:.2%}')
 
         return jsonify({
             'class_name': pest_name,
             'confidence': f'{confidence:.2%}',
-            'is_pest': is_pest_result,
+            'is_pest': True,
             'is_new': not is_known_pest,
             'message': message,
             'info_url': info_url,
-            'pest_data': full_pest_data,
+            'generation_status': generation_status,
+            'threat_level': threat_level,
+            'is_traditional_pest': is_traditional_pest,
         })
-        
+
     except Exception as e:
         logger.error(f'Error during prediction: {str(e)}', exc_info=True)
         return jsonify({'error': f'Error processing image: {str(e)}'})

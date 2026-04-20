@@ -47,13 +47,13 @@
                     </div>
                     <h3>Upload Pest Image</h3>
                     <p>Drag and drop your image here, or click to browse</p>
-                    <input type="file" id="file-input" accept="image/*" style="display: none;">
+                    <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.webp,.gif,.bmp" style="display: none;">
                     <button type="button" class="btn btn-primary" id="browse-btn">
                         <i class="fas fa-folder-open"></i>
                         Choose File
                     </button>
                     <div class="upload-formats">
-                        <small>Supported formats: JPG, PNG, JPEG (Max 10MB)</small>
+                        <small>Supported formats: JPG, PNG, WEBP, GIF, BMP (Max 10MB)</small>
                     </div>
                 </div>
             </div>
@@ -118,23 +118,26 @@
     <section class="results-section" id="results-section" style="display: none;">
         <div class="results-card">
             <div class="results-header">
-                <h2>Classification Results</h2>
+                <h2 id="result-heading">Classification Results</h2>
                 <div class="confidence-badge" id="confidence-badge"></div>
             </div>
-            
+
             <div class="results-content">
                 <div class="pest-result">
                     <div class="pest-image">
-                        <img id="result-image" alt="Classified pest">
+                        <img id="result-image" alt="Classified image">
                     </div>
                     <div class="pest-details">
-                        <h3 id="pest-name">Pest Name</h3>
-                        <p class="pest-scientific" id="pest-scientific">Scientific Name</p>
-                        <div class="pest-status">
-                            <span class="status-label" id="pest-status">Classification Status</span>
+                        <p id="result-type-label" style="font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.25rem;"></p>
+                        <h3 id="pest-name" style="margin-bottom:0.25rem;"></h3>
+                        <p class="pest-scientific" id="pest-scientific"></p>
+                        <div id="threat-row" style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;">
+                            <span style="color:var(--text-muted);font-size:0.9rem;font-weight:600;">Threat Level</span>
+                            <span id="threat-badge" style="padding:0.3rem 1rem;border-radius:6px;font-weight:700;font-size:0.9rem;"></span>
                         </div>
+                        <p id="result-subtext" style="color:var(--text-body);font-size:0.95rem;margin-bottom:1.5rem;"></p>
                         <div class="action-buttons">
-                            <a href="#" class="btn btn-primary" id="learn-more-btn">
+                            <a href="#" class="btn btn-primary" id="learn-more-btn" style="display:none;">
                                 <i class="fas fa-info-circle"></i>
                                 Learn More
                             </a>
@@ -204,9 +207,12 @@ function handleFileSelect(e) {
     const file = e.target.files[0];
     if (!file) return;
     
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-        alert('Please select an image file.');
+    // Validate file type — only formats PIL reliably handles
+    var allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp'];
+    var allowedExts = /\.(jpg|jpeg|png|webp|gif|bmp)$/i;
+    if (!allowedTypes.includes(file.type) && !allowedExts.test(file.name)) {
+        alert('Unsupported file type. Please upload a JPG, PNG, WEBP, GIF, or BMP image.');
+        fileInput.value = '';
         return;
     }
     
@@ -265,50 +271,89 @@ function classifyImage() {
     });
 }
 
+var THREAT_COLORS = { high: '#ef4444', medium: '#f59e0b', low: '#22c55e', none: '#94a3b8' };
+var THREAT_LABELS = { high: 'High Risk', medium: 'Medium Risk', low: 'Low Risk', none: 'No Threat' };
+var SCIENTIFIC_NAMES = {
+    'Ants':'Formicidae','Beetles':'Coleoptera','Caterpillars':'Lepidoptera larvae',
+    'Bees':'Apidae','Earthworms':'Lumbricidae','Earwigs':'Dermaptera',
+    'Grasshoppers':'Orthoptera','Moths':'Lepidoptera','Slugs':'Gastropoda',
+    'Snails':'Gastropoda','Wasps':'Vespidae','Weevils':'Curculionidae'
+};
+
 function showResults(data) {
-    // Hide processing section
     processingSection.style.display = 'none';
-    
-    // Update results
-    document.getElementById('confidence-badge').textContent = data.confidence;
-    document.getElementById('result-image').src = previewImage.src;
-    document.getElementById('pest-name').textContent = data.class_name;
-    
-    // Set scientific name (you might want to add this to your Flask app)
-    const scientificNames = {
-        'Ants': 'Formicidae',
-        'Beetles': 'Coleoptera',
-        'Caterpillars': 'Lepidoptera larvae',
-        'Bees': 'Apidae',
-        'Earthworms': 'Lumbricidae',
-        'Earwigs': 'Dermaptera',
-        'Grasshoppers': 'Orthoptera',
-        'Moths': 'Lepidoptera',
-        'Slugs': 'Gastropoda',
-        'Snails': 'Gastropoda',
-        'Wasps': 'Vespidae',
-        'Weevils': 'Curculionidae'
-    };
-    
-    document.getElementById('pest-scientific').textContent = scientificNames[data.class_name] || '';
-    
-    // Update status with special handling for new pests
-    let statusText = data.is_pest ? 'PEST DETECTED' : 'NOT A PEST';
-    if (data.is_new && data.is_pest) {
-        statusText = '🤖 NEW PEST DETECTED - AI Generated Info';
+
+    if (data.is_new && data.is_pest && data.info_url) {
+        sessionStorage.setItem('pendingPestPreview', previewImage.src);
+        sessionStorage.setItem('pendingPestKey', data.info_url.split('/').pop());
     }
-    document.getElementById('pest-status').textContent = statusText;
-    
-    // Set up Learn More button with explicit navigation
-    const learnMoreBtn = document.getElementById('learn-more-btn');
-    learnMoreBtn.href = data.info_url;
-    learnMoreBtn.onclick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        window.location.href = data.info_url;
-    };
-    
-    // Show results section
+
+    // Always set the uploaded image
+    document.getElementById('result-image').src = previewImage.src;
+
+    // Determine type: A = pest, B = no creature, C = non-traditional creature
+    var noCreature    = !data.class_name;
+    var isTraditional = data.is_traditional_pest !== false;
+    var typeA = !noCreature && isTraditional;
+    var typeC = !noCreature && !isTraditional;
+    var typeB = noCreature;
+
+    // --- Heading ---
+    document.getElementById('result-heading').textContent =
+        typeA ? 'Pest Detected' :
+        typeC ? 'Creature Detected' :
+                'No Creature Detected';
+
+    // --- Type label (small caps above the name) ---
+    document.getElementById('result-type-label').textContent =
+        typeA ? 'Agricultural Pest' :
+        typeC ? 'Non-Pest Creature' :
+                'Result';
+
+    // --- Name ---
+    document.getElementById('pest-name').textContent =
+        typeB ? 'Nothing detected' : (data.class_name || '—');
+
+    // --- Scientific name ---
+    document.getElementById('pest-scientific').textContent =
+        typeA ? (SCIENTIFIC_NAMES[data.class_name] || '') : '';
+
+    // --- Threat level badge (always shown, even for type B) ---
+    var tLevel  = data.threat_level || 'none';
+    var tColor  = THREAT_COLORS[tLevel] || THREAT_COLORS.none;
+    var tLabel  = THREAT_LABELS[tLevel] || 'Unknown';
+    var tBadge  = document.getElementById('threat-badge');
+    tBadge.textContent = tLabel;
+    tBadge.style.background   = tColor;
+    tBadge.style.color        = '#fff';
+    tBadge.style.borderRadius = '6px';
+    tBadge.style.padding      = '0.3rem 1rem';
+    tBadge.style.fontWeight   = '700';
+    tBadge.style.fontSize     = '0.9rem';
+
+    // --- Subtext ---
+    document.getElementById('result-subtext').textContent =
+        typeA  ? (data.is_new ? 'AI-generated profile — full information is being prepared.' : '') :
+        typeC  ? 'Not a traditional agricultural pest. See the information page for relevant concerns.' :
+                 'No recognisable living creature was found. Try a clearer or closer image.';
+
+    // --- Confidence badge ---
+    var badge = document.getElementById('confidence-badge');
+    var pct = parseFloat(data.confidence);
+    badge.className = 'confidence-badge ' + (pct >= 80 ? 'high' : pct >= 60 ? 'medium' : 'low');
+    badge.textContent = 'Confidence: ' + (data.confidence || '—');
+
+    // --- Learn More button ---
+    var learnBtn = document.getElementById('learn-more-btn');
+    if (data.info_url && !typeB) {
+        learnBtn.style.display = '';
+        learnBtn.href = data.info_url;
+        learnBtn.onclick = function(e) { e.preventDefault(); window.location.href = data.info_url; };
+    } else {
+        learnBtn.style.display = 'none';
+    }
+
+    // Show the card
     resultsSection.style.display = 'block';
     resultsSection.scrollIntoView({ behavior: 'smooth' });
 }
